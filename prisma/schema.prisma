@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id   Int    @id @default(autoincrement())
+  uuid String @unique @default(uuid())
+
+  firstName String
+  lastName  String
+  email     String @unique
+
+  phoneNumber String? @unique
+  username    String? @unique
+  parentPhone String?
+
+  password       String?
+  role           RoleEnum @default(USER)
+  profileImageId Int?     @unique
+
+  dob         DateTime?
+  gender      GenderEnum?
+  nationality String?
+  address     String?
+  zipCode     String?
+  city        String?
+  country     String?
+
+  dateToExpireOtp       DateTime?
+  qrCode                String                 @unique @default(uuid())
+  isDeleted             Boolean                @default(false)
+  otp                   String?
+  verified              Boolean                @default(false)
+  googleId              String?
+  appleId               String?
+  userCreationMethod    UserCreationMethodEnum @default(EMAIL)
+  verificationEmailedAt DateTime?              @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ProfileImage    File?             @relation(fields: [profileImageId], references: [id], onDelete: SetNull)
+  
+}
+
+
+model File {
+  id   Int    @id @default(autoincrement())
+  uuid String @unique @default(uuid())
+
+  name     String
+  path     String         @unique
+  url      String
+  source   FileSourceEnum @default(LOCAL)
+  type     FileTypeEnum
+  size     Int
+  category String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  isUsed Boolean @default(false)
+
+  User    User?    @relation
+}
+
+
+
+enum FileTypeEnum {
+  IMAGE
+  VIDEO
+  DOCUMENT
+}
+
+enum FileSourceEnum {
+  LOCAL
+  S3
+  CLOUDINARY
+}
+
+enum GenderEnum {
+  MALE
+  FEMALE
+}
+
+enum RoleEnum {
+  ADMIN
+  WORKER
+  GUARD
+  USER
+}
+
+enum UserCreationMethodEnum {
+  EMAIL
+  GOOGLE
+  APPLE
+  MANUAL
+}

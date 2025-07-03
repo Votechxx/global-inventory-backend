@@ -1,0 +1,18 @@
+extends emailBase 
+
+
+block content 
+    p Hi #{name},
+    p We are to welcome you here 🎉🙏
+    p This is your support team to help you with your account. 
+    table(role='presentation', border='0', cellpadding='0', cellspacing='0')
+        tbody
+            tr
+                td(align='left')
+                    table(role='presentation', border='0', cellpadding='0', cellspacing='0')
+                        tbody
+                            tr
+                                td
+                                    p(style='color: blue;') #{WELCOME}
+    p(style='color: red;') Have a good day!
+    p - Al Montazah team - 

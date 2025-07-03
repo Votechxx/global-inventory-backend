@@ -1,0 +1,26 @@
+extends emailBase
+
+block content
+  p Hi #{name},
+  p Welcome to the Montazah Application, we're glad to have you 🎉🙏
+
+  p Please verify your email address by clicking the link below:
+
+  table(role='presentation', border='0', cellpadding='0', cellspacing='0')
+    tbody
+      tr
+        td(align='left')
+          table(role='presentation', border='0', cellpadding='0', cellspacing='0')
+            tbody
+              tr
+                td
+                  a(href=url, style='display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;') Click here to verify your email
+
+  br
+  p 
+    span(style='color: #999999;') If the button doesn't work, please copy and paste the URL below into your browser:
+    br
+    a(href=url, style='color: #1a0dab; word-break: break-all;') #{url}
+
+  p(style='color: red;') If you didn't request this, please ignore this email.
+  p - Montazah team
