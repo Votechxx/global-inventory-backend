@@ -1,40 +1,30 @@
-version: "3.8"
-
 services:
+
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: ${APP_CONTAINER}
-    env_file: .env
+    container_name: global-inventory-backend
     environment:
       - NODE_OPTIONS=--max-old-space-size=2048
     ports:
-      - "${APP_PORT}:${APP_PORT}" # Map host:container port using APP_PORT (e.g., 3000:3000)
+      - "3000:4444" # Map container's port 3444 to your machine
     depends_on:
-      - db
+      - db # Wait for the db service to be ready before starting the app
     volumes:
-      - uploads_data:/app/uploads
-    restart: unless-stopped
-
+      - uploads_data:/app/uploads # Mount the local app directory to the container's /app directory
+  #
   db:
-    image: postgres:17.2
-    container_name: ${DB_CONTAINER}
-    env_file: .env
+    image: postgres:17.2 # Use PostgreSQL v17.2
+    container_name: global-inventory-db
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: memo
+      POSTGRES_DB: global
     ports:
-      - "${DB_PORT}:5432"
+      - "5135:5432" # Map container's port 5432 to your machine
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - postgres_data:/var/lib/postgresql/data # Persist database data
 
 volumes:
   postgres_data:
