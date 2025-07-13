@@ -18,10 +18,10 @@ model User {
   id   Int    @id @default(autoincrement())
   uuid String @unique @default(uuid())
 
-  firstName String
-  lastName  String
-  email     String @unique
-
+  firstName   String
+  lastName    String
+  email       String  @unique
+  shopId      Int?
   phoneNumber String? @unique
   username    String? @unique
   parentPhone String?
@@ -53,7 +53,7 @@ model User {
 
   ProfileImage File? @relation(fields: [profileImageId], references: [id], onDelete: SetNull)
 
-  shop shop[]
+  shop   shop?   @relation(fields: [shopId], references: [id], onDelete: Cascade)
 }
 
 model shop {
@@ -69,10 +69,9 @@ model shop {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  UserId       Int
-  User         User           @relation(fields: [UserId], references: [id], onDelete: Cascade)
   product      product[]
   product_shop product_shop[]
+  User         User[]
 }
 
 model product {
