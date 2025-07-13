@@ -9,6 +9,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UserRepo } from './core/user/repo/user.repo';
 import { FileModule } from './file/file.module';
+import { ShopsModule } from './shops/shops.module';
 
 
 @Module({
@@ -26,6 +27,7 @@ import { FileModule } from './file/file.module';
         EmailModule,
         OtpModule,
         FileModule,
+        ShopsModule,
     ],
     controllers: [],
     providers: [UserRepo],
