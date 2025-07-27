@@ -147,7 +147,7 @@ export class UserService {
         };
         if (user.role !== 'ADMIN')
             where.role = {
-                notIn: ['ADMIN', 'GUARD', 'USER'],
+                notIn: ['ADMIN', 'USER'],
             };
         if (name) {
             where.firstName = {
