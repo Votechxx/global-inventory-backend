@@ -8,6 +8,7 @@ import { PrismaExceptionFilter } from './common/exception-filters/prisma.excepti
 import { ResponseFormatInterceptor } from './common/interceptors/response-format.interceptor';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { VIEW_PATH } from './common/constants/path.constant';
+import { ENV_VARIABLES } from './common/config/env.config';
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -55,7 +56,7 @@ async function bootstrap() {
         },
     });
 
-    const port = configService.get('PORT') || 3334;
+    const port = ENV_VARIABLES.port || 3332;
 
     await app.listen(port);
 }
