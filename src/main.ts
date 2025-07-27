@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import morgan from 'morgan';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { PrismaExceptionFilter } from './common/exception-filters/prisma.exception';
@@ -56,7 +56,8 @@ async function bootstrap() {
         },
     });
 
-    const port = ENV_VARIABLES.port || 3332;
+    const port = ENV_VARIABLES.port || 3339;
+    Logger.warn({ port });
 
     await app.listen(port);
 }
