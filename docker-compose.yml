@@ -18,9 +18,9 @@ services:
     image: postgres:17.2 # Use PostgreSQL v17.2
     container_name: ${DB_CONTAINER} # Use the DB_CONTAINER_NAME from .env or default to postgres-db
     environment:
-      POSTGRES_USER: ${DB_USER} # Use the DB_USER from .env or default to postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD} # Use the DB_PASSWORD from .env or default to 12345678
-      POSTGRES_DB: ${DB_NAME} # Use the DB_NAME from .env or default to global
+      POSTGRES_USER: postgres # Use the DB_USER from .env or default to postgres
+      POSTGRES_PASSWORD: memo # Use the DB_PASSWORD from .env or default to 12345678
+      POSTGRES_DB: global # Use the DB_NAME from .env or default to global
     ports:
       - "${DB_PORT}:5432" # Map container's port 5432 to your machine
     volumes:
