@@ -57,8 +57,6 @@ async function bootstrap() {
     });
 
     const port = ENV_VARIABLES.port || 3339;
-    Logger.warn({ port });
-
     await app.listen(port);
 }
 bootstrap();

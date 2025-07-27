@@ -23,9 +23,8 @@ COPY . .
 RUN npx prisma generate
 
 # Expose the app port (default to 3000, fallback if APP_PORT isn't defined at build time)
-ARG APP_PORT=3000
-ENV APP_PORT=${APP_PORT}
-EXPOSE ${APP_PORT}
+
+EXPOSE 3339
 
 # Start the app: run DB migrations and launch the server
 CMD ["sh", "-c", "npx prisma migrate deploy && npm run start"]
