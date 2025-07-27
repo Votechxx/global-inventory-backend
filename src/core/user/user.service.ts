@@ -182,9 +182,7 @@ export class UserService {
             select:
                 user.role === RoleEnum.ADMIN
                     ? userSecretFields
-                    : user.role === RoleEnum.GUARD
-                      ? userPrivateFields
-                      : userPublicFields,
+                    : userPublicFields,
         });
         const count = await this.prismaService.user.count({
             where,

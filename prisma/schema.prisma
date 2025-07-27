@@ -92,10 +92,8 @@ enum GenderEnum {
 }
 
 enum RoleEnum {
-  ADMIN
-  WORKER
-  GUARD
-  USER
+  ADMIN // admin
+  USER // worker
 }
 
 enum UserCreationMethodEnum {

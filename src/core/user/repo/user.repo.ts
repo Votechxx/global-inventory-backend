@@ -76,16 +76,6 @@ export class UserRepo {
         });
     }
 
-    async createGuard(
-        data: Prisma.UserCreateInput,
-        prisma: PrismaService = this.prismaService,
-    ) {
-        data.role = RoleEnum.GUARD;
-        return prisma.user.create({
-            data,
-        });
-    }
-
     async createAdmin(
         data: Prisma.UserCreateInput,
         prisma: PrismaService = this.prismaService,

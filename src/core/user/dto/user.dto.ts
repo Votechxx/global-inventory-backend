@@ -52,7 +52,7 @@ export class UserDto implements UserInterface {
     email: string;
 
     @ApiProperty({
-        example: RoleEnum.GUARD,
+        example: RoleEnum.USER,
         description: 'The role of the user',
         required: false,
         default: RoleEnum.USER,
@@ -214,7 +214,7 @@ export class AdminCreateUserDto {
     gender?: GenderEnum;
 
     @ApiProperty({
-        example: RoleEnum.GUARD,
+        example: RoleEnum.USER,
         description: 'The role of the user',
         required: true,
         default: RoleEnum.USER,
@@ -329,7 +329,7 @@ export class CreateUserDto {
     gender?: GenderEnum;
 
     @ApiProperty({
-        example: RoleEnum.GUARD,
+        example: RoleEnum.USER,
         description: 'The role of the user',
         required: false,
         default: RoleEnum.USER,
