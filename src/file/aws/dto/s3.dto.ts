@@ -1,7 +1,7 @@
 import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
 import { FileDto } from 'src/file/dto/file.dto';
 
-export class UploadLocalFileDto extends PickType(FileDto, ['category']) {
+export class UploadS3FileDto extends PickType(FileDto, ['category']) {
     @ApiProperty({
         description: 'The file to upload',
         type: 'string',
@@ -11,7 +11,7 @@ export class UploadLocalFileDto extends PickType(FileDto, ['category']) {
     file: Express.Multer.File;
 }
 
-export class UploadLocalFilesDto extends PickType(FileDto, ['category']) {
+export class UploadS3FilesDto extends PickType(FileDto, ['category']) {
     @ApiProperty({
         description: 'The files to upload',
         type: 'array',
@@ -24,7 +24,7 @@ export class UploadLocalFilesDto extends PickType(FileDto, ['category']) {
     files: Express.Multer.File[];
 }
 
-export class CreateLocalFileDto extends OmitType(FileDto, [
+export class CreateS3FileDto extends OmitType(FileDto, [
     'source',
     'id',
     'createdAt',

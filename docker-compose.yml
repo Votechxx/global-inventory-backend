@@ -8,7 +8,7 @@ services:
     environment:
       - NODE_OPTIONS=--max-old-space-size=2048
     ports:
-      - "3000:4444" # Map container's port 3444 to your machine
+      - "3339:3339" # Map container's port 3444 to your machine
     depends_on:
       - db # Wait for the db service to be ready before starting the app
     volumes:

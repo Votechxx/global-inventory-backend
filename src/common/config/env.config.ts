@@ -14,6 +14,10 @@ type Env_Var_Type = {
     email: string | number;
     emailPassword: string | number;
     databaseUrl: string | number;
+    s3BucketName: string;
+    s3SecretAccessKey: string;
+    s3AccessKeyId: string;
+    s3Region: string;
 };
 
 const config: Record<Environment, Env_Var_Type> = {
@@ -28,6 +32,10 @@ const config: Record<Environment, Env_Var_Type> = {
         emailPort: process.env.EMAIL_PORT,
         email: process.env.EMAIL,
         emailPassword: process.env.EMAIL_PASSWORD,
+        s3AccessKeyId: process.env.AWS_S3_ACCESS_KEY_ID,
+        s3SecretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY,
+        s3BucketName: process.env.AWS_S3_BUCKET_NAME,
+        s3Region: process.env.AWS_S3_REGION,
     },
     [Environment.TEST]: {
         token: process.env.TOKEN,
@@ -40,6 +48,10 @@ const config: Record<Environment, Env_Var_Type> = {
         emailPort: process.env.EMAIL_PORT,
         email: process.env.EMAIL,
         emailPassword: process.env.EMAIL_PASSWORD,
+        s3AccessKeyId: process.env.AWS_S3_ACCESS_KEY_ID,
+        s3SecretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY,
+        s3BucketName: process.env.AWS_S3_BUCKET_NAME,
+        s3Region: process.env.AWS_S3_REGION,
     },
     [Environment.PRODUCTION]: {
         token: process.env.TOKEN,
@@ -52,6 +64,10 @@ const config: Record<Environment, Env_Var_Type> = {
         emailPort: process.env.EMAIL_PORT,
         email: process.env.EMAIL,
         emailPassword: process.env.EMAIL_PASSWORD,
+        s3AccessKeyId: process.env.AWS_S3_ACCESS_KEY_ID,
+        s3SecretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY,
+        s3BucketName: process.env.AWS_S3_BUCKET_NAME,
+        s3Region: process.env.AWS_S3_REGION,
     },
 };
 

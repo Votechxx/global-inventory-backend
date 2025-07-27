@@ -52,59 +52,6 @@ model User {
   updatedAt DateTime @updatedAt
 
   ProfileImage File? @relation(fields: [profileImageId], references: [id], onDelete: SetNull)
-
-  shop   shop?   @relation(fields: [shopId], references: [id], onDelete: Cascade)
-}
-
-model shop {
-  id   Int    @id @default(autoincrement())
-  uuid String @unique @default(uuid())
-
-  name        String
-  description String?
-  location    String?
-  phoneNumber String?
-  balance     Float   @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  product      product[]
-  product_shop product_shop[]
-  User         User[]
-}
-
-model product {
-  id   Int    @id @default(autoincrement())
-  uuid String @unique @default(uuid())
-
-  name         String
-  description  String?
-  sellingPrice Float
-  imageId      Int?    @unique
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  Image File? @relation(fields: [imageId], references: [id], onDelete: SetNull)
-
-  shopId       Int
-  shop         shop           @relation(fields: [shopId], references: [id], onDelete: Cascade)
-  product_shop product_shop[]
-}
-
-model product_shop {
-  id   Int    @id @default(autoincrement())
-  uuid String @unique @default(uuid())
-
-  productId Int
-  shopId    Int
-  quantity  Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  product product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  shop    shop    @relation(fields: [shopId], references: [id], onDelete: Cascade)
 }
 
 model File {
@@ -124,8 +71,7 @@ model File {
 
   isUsed Boolean @default(false)
 
-  User    User?    @relation
-  product product?
+  User User? @relation
 }
 
 enum FileTypeEnum {

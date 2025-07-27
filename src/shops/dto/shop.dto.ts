@@ -1,5 +1,6 @@
-//dto for the shop entity
-//with description and examples and validation
+// dto for the shop entity
+// with description and examples and validation
+
 import { IsString, IsNotEmpty, IsOptional, IsPhoneNumber, Length } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';

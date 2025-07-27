@@ -1,8 +1,7 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { FileSourceEnum, FileTypeEnum } from '@prisma/client';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import {
-    IsBoolean,
     IsEnum,
     IsNotEmpty,
     IsNumber,
@@ -29,16 +28,6 @@ export class FileDto {
     @IsString()
     @IsNotEmpty()
     name: string;
-
-    @ApiProperty({
-        description: 'Indicates if the file is used',
-        required: true,
-        default: false,
-    })
-    @IsOptional()
-    @IsBoolean()
-    @Transform(({ value }) => value === 'true' || value === true)
-    isUsed?: boolean;
 
     @ApiProperty({
         description: 'The path of the file',
@@ -104,5 +93,4 @@ export class CreateFileDto extends OmitType(FileDto, [
     'createdAt',
     'updatedAt',
     'id',
-    'isUsed',
 ]) {}

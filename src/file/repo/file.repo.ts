@@ -4,6 +4,7 @@ import { CreateFileDto } from '../dto/file.dto';
 import { FileSourceEnum, Prisma } from '@prisma/client';
 import { CreateLocalFileDto } from '../local/dto/local.dto';
 import { FileCategoryEnum } from '../enum/file-category.enum';
+import { CreateS3FileDto } from '../aws/dto/s3.dto';
 
 @Injectable()
 export class FileRepo {
@@ -22,6 +23,29 @@ export class FileRepo {
                 id: true,
             },
         });
+    }
+
+    async createS3File(createS3FileDto: CreateS3FileDto) {
+        return this.prismaService.file.create({
+            data: { ...createS3FileDto, source: FileSourceEnum.S3 },
+            select: {
+                id: true,
+            },
+        });
+    }
+
+    async createBulkS3Files(createS3FileDtos: CreateS3FileDto[]) {
+        const createdFiles = await Promise.all(
+            createS3FileDtos.map((file) =>
+                this.prismaService.file.create({
+                    data: { ...file, source: FileSourceEnum.S3 },
+                    select: {
+                        id: true,
+                    },
+                }),
+            ),
+        );
+        return createdFiles;
     }
 
     async createBulkFiles(createFileDtos: CreateFileDto[]) {
@@ -85,22 +109,24 @@ export class FileRepo {
         });
     }
 
-    async associateFilesToItem(
-        itemId: number,
+    async removeAllUnusedFilesExceededADay() {
+        await this.prismaService.file.deleteMany({
+            where: {
+                isUsed: false, // Only delete files that are not already used
+                createdAt: {
+                    lt: new Date(Date.now() - 24 * 60 * 60 * 1000), // Files older than 1 day
+                },
+            },
+        });
+    }
+
+    async markFilesAsUsed(
         fileIds: number[],
-        category: FileCategoryEnum,
         prisma: Prisma.TransactionClient = this.prismaService,
     ) {
         return prisma.file.updateMany({
-            where: {
-                id: { in: fileIds },
-                category,
-                isUsed: false, // Only associate files that are not already used
-            },
-            data: {
-                isUsed: true, // Mark files as used
-                
-            },
+            where: { id: { in: fileIds } },
+            data: { isUsed: true },
         });
     }
 }
