@@ -6,24 +6,25 @@ import * as pug from 'pug';
 import { Injectable } from '@nestjs/common';
 import { Environment } from 'src/common/enums/environment.enum';
 import { VIEW_PATH } from 'src/common/constants/path.constant';
+import { ENV_VARIABLES } from 'src/common/config/env.config';
 
 @Injectable()
 export class EmailService {
     private from: string;
 
     constructor(private readonly configService: ConfigService) {
-        this.from = `Al Montazah <${configService.get('EMAIL')}>`;
+        this.from = `Al Montazah <${ENV_VARIABLES.email}>`;
     }
 
     newTransport() {
         if (this.configService.get('NODE_ENV') === Environment.PRODUCTION) {
             return nodemailer.createTransport({
-                host: this.configService.get('EMAIL_HOST'),
+                host: ENV_VARIABLES.emailHost,
                 // secure: true,
-                port: this.configService.get('EMAIL_PORT'),
+                port: ENV_VARIABLES.emailPort,
                 auth: {
-                    user: this.configService.get('EMAIL'),
-                    pass: this.configService.get('EMAIL_PASSWORD'),
+                    user: ENV_VARIABLES.email,
+                    pass: ENV_VARIABLES.emailPassword,
                 },
             });
         }
