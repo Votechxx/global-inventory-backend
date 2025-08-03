@@ -30,6 +30,12 @@ model User {
   role           RoleEnum @default(USER)
   profileImageId Int?     @unique
 
+  inventoryId   Int?
+  inventory     Inventory?    @relation(fields: [inventoryId], references: [id])
+  
+  dailyReports DailyReport[]
+  transactions Transaction[]
+
   dob         DateTime?
   gender      GenderEnum?
   nationality String?
@@ -53,6 +59,96 @@ model User {
 
   ProfileImage File? @relation(fields: [profileImageId], references: [id], onDelete: SetNull)
 }
+
+model Inventory {
+  id            Int               @id @default(autoincrement())
+  uuid          String            @unique @default(uuid())
+  name          String
+  balance       Float             @default(0)
+  isDeleted     Boolean           @default(false)
+  products      InventoryProduct[]
+  workers       User[]
+  shipments     Shipment[]
+  dailyReports  DailyReport[]
+  transactions  Transaction[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
+
+
+model Product {
+  id            Int               @id @default(autoincrement())
+  uuid          String            @unique @default(uuid())
+  name          String
+  description   String?
+  unitPrice     Float
+  sku           String            @unique
+  inventories   InventoryProduct[]
+  shipments     Shipment[]
+  transactions  Transaction[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
+
+model InventoryProduct {
+  id          Int       @id @default(autoincrement())
+  uuid        String    @unique @default(uuid())
+  inventoryId Int
+  inventory   Inventory @relation(fields: [inventoryId], references: [id])
+  productId   Int
+  product     Product   @relation(fields: [productId], references: [id])
+  quantity    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  @@unique([inventoryId, productId])
+}
+
+model Shipment {
+  id            Int       @id @default(autoincrement())
+  uuid          String    @unique @default(uuid())
+  inventoryId   Int
+  inventory     Inventory @relation(fields: [inventoryId], references: [id])
+  productId     Int
+  product       Product   @relation(fields: [productId], references: [id])
+  quantity      Int
+  cost          Float
+  createdAt     DateTime  @default(now())
+}
+
+model Transaction {
+  id            Int       @id @default(autoincrement())
+  uuid          String    @unique @default(uuid())
+  inventoryId   Int
+  inventory     Inventory @relation(fields: [inventoryId], references: [id])
+  productId     Int
+  product       Product   @relation(fields: [productId], references: [id])
+  quantity      Int
+  type          TransactionTypeEnum    // "ADD", "REMOVE", "TRANSFER"
+  workerId      Int
+  worker        User      @relation(fields: [workerId], references: [id])
+  createdAt     DateTime  @default(now())
+}
+
+model DailyReport {
+  id            Int       @id @default(autoincrement())
+  uuid          String    @unique @default(uuid())
+  inventoryId   Int
+  inventory     Inventory @relation(fields: [inventoryId], references: [id])
+  workerId      Int
+  worker        User      @relation(fields: [workerId], references: [id])
+  stock         Json      // { productId: quantity }
+  cashOnHand    Float
+  bankDeposit   Float
+  revenue       Float
+  lossPercentage Float
+  finalBalance  Float
+  status        StatusDailyReportEnum    // "PENDING", "APPROVED", "REJECTED"
+  rejectionReason String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+
 
 model File {
   id   Int    @id @default(autoincrement())
@@ -101,4 +197,16 @@ enum UserCreationMethodEnum {
   GOOGLE
   APPLE
   MANUAL
+}
+
+enum StatusDailyReportEnum {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TransactionTypeEnum {
+  ADD
+  REMOVE
+  TRANSFER
 }
