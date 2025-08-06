@@ -69,15 +69,15 @@ export class UserController {
         return await this.userService.update(+id, updateUserDto);
     }
 
-    @UseGuards(AuthGuard('jwt'), RolesGuard)
+ @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(RoleEnum.ADMIN)
     @ApiBearerAuth('default')
     @ApiOperation({
-        summary: 'Create a new user',
-        description: 'Create a new user by admin',
+        summary: 'Create a new user (worker)',
+        description: 'Create a new user (worker) by admin with inventory assignment',
     })
     @Post()
-    createUser(@Body() createUserDto: AdminCreateUserDto) {
+    createUser(@Body() createUserDto: AdminCreateUserDto, @GetUser() user: User) {
         return this.userService.createUser(createUserDto);
     }
 

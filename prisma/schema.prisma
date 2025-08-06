@@ -32,9 +32,6 @@ model User {
 
   inventoryId   Int?
   inventory     Inventory?    @relation(fields: [inventoryId], references: [id])
-  
-  dailyReports DailyReport[]
-  transactions Transaction[]
 
   dob         DateTime?
   gender      GenderEnum?
@@ -61,92 +58,84 @@ model User {
 }
 
 model Inventory {
-  id            Int               @id @default(autoincrement())
-  uuid          String            @unique @default(uuid())
-  name          String
-  balance       Float             @default(0)
-  isDeleted     Boolean           @default(false)
-  products      InventoryProduct[]
-  workers       User[]
-  shipments     Shipment[]
-  dailyReports  DailyReport[]
-  transactions  Transaction[]
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  id          Int          @id @default(autoincrement())
+  uuid        String       @unique @default(uuid())
+  name        String       
+  description String?
+  location    String?
+  products    Product[]    @relation("ProductInventories") 
+  workers     User[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 
 model Product {
-  id            Int               @id @default(autoincrement())
-  uuid          String            @unique @default(uuid())
-  name          String
-  description   String?
-  unitPrice     Float
-  sku           String            @unique
-  inventories   InventoryProduct[]
-  shipments     Shipment[]
-  transactions  Transaction[]
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  id          Int           @id @default(autoincrement())
+  uuid        String        @unique @default(uuid())
+  name        String        @unique
+  price       Float
+  productUnits ProductUnit[]
+  inventories Inventory[]   @relation("ProductInventories") 
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 }
 
-model InventoryProduct {
-  id          Int       @id @default(autoincrement())
-  uuid        String    @unique @default(uuid())
-  inventoryId Int
-  inventory   Inventory @relation(fields: [inventoryId], references: [id])
-  productId   Int
-  product     Product   @relation(fields: [productId], references: [id])
-  quantity    Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  @@unique([inventoryId, productId])
+model ProductUnit {
+  id        Int     @id @default(autoincrement())
+  uuid      String  @unique @default(uuid())
+  value     Int     @default(1) // number of units in this product unit
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model Shipment {
-  id            Int       @id @default(autoincrement())
-  uuid          String    @unique @default(uuid())
-  inventoryId   Int
-  inventory     Inventory @relation(fields: [inventoryId], references: [id])
-  productId     Int
-  product       Product   @relation(fields: [productId], references: [id])
-  quantity      Int
-  cost          Float
-  createdAt     DateTime  @default(now())
-}
 
-model Transaction {
-  id            Int       @id @default(autoincrement())
-  uuid          String    @unique @default(uuid())
-  inventoryId   Int
-  inventory     Inventory @relation(fields: [inventoryId], references: [id])
-  productId     Int
-  product       Product   @relation(fields: [productId], references: [id])
-  quantity      Int
-  type          TransactionTypeEnum    // "ADD", "REMOVE", "TRANSFER"
-  workerId      Int
-  worker        User      @relation(fields: [workerId], references: [id])
-  createdAt     DateTime  @default(now())
-}
+// model Shipment {
+//   id            Int       @id @default(autoincrement())
+//   uuid          String    @unique @default(uuid())
+//   inventoryId   Int
+//   inventory     Inventory @relation(fields: [inventoryId], references: [id])
+//   productId     Int
+//   product       Product   @relation(fields: [productId], references: [id])
+//   quantity      Int
+//   cost          Float
+//   createdAt     DateTime  @default(now())
+// }
 
-model DailyReport {
-  id            Int       @id @default(autoincrement())
-  uuid          String    @unique @default(uuid())
-  inventoryId   Int
-  inventory     Inventory @relation(fields: [inventoryId], references: [id])
-  workerId      Int
-  worker        User      @relation(fields: [workerId], references: [id])
-  stock         Json      // { productId: quantity }
-  cashOnHand    Float
-  bankDeposit   Float
-  revenue       Float
-  lossPercentage Float
-  finalBalance  Float
-  status        StatusDailyReportEnum    // "PENDING", "APPROVED", "REJECTED"
-  rejectionReason String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-}
+// model Transaction {
+//   id            Int       @id @default(autoincrement())
+//   uuid          String    @unique @default(uuid())
+//   inventoryId   Int
+//   inventory     Inventory @relation(fields: [inventoryId], references: [id])
+//   productId     Int
+//   product       Product   @relation(fields: [productId], references: [id])
+//   quantity      Int
+//   type          TransactionTypeEnum    // "ADD", "REMOVE", "TRANSFER"
+//   workerId      Int
+//   worker        User      @relation(fields: [workerId], references: [id])
+//   createdAt     DateTime  @default(now())
+// }
+
+// model DailyReport {
+//   id            Int       @id @default(autoincrement())
+//   uuid          String    @unique @default(uuid())
+//   inventoryId   Int
+//   inventory     Inventory @relation(fields: [inventoryId], references: [id])
+//   workerId      Int
+//   worker        User      @relation(fields: [workerId], references: [id])
+//   stock         Json      // { productId: quantity }
+//   cashOnHand    Float
+//   bankDeposit   Float
+//   revenue       Float
+//   lossPercentage Float
+//   finalBalance  Float
+//   status        StatusDailyReportEnum    // "PENDING", "APPROVED", "REJECTED"
+//   rejectionReason String?
+//   createdAt     DateTime  @default(now())
+//   updatedAt     DateTime  @updatedAt
+// }
 
 
 

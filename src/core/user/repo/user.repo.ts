@@ -86,6 +86,41 @@ export class UserRepo {
         });
     }
 
+    async getUsers(where: Prisma.UserWhereInput, take: number, skip: number) {
+        return this.prismaService.user.findMany({
+            where,
+            take,
+            skip,
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+                inventoryId: true,
+            },
+        });
+    }
+
+    async getUserCount(where: Prisma.UserWhereInput) {
+        return this.prismaService.user.count({ where });
+    }
+
+    async updateUser(id: number, data: Prisma.UserUpdateInput) {
+        const user = await this.getUserById(id);
+        if (!user) throw new NotFoundException('User not found');
+        return this.prismaService.user.update({ where: { id }, data });
+    }
+
+    async deleteUser(userId: number) {
+        const user = await this.getUserById(userId);
+        if (!user) throw new NotFoundException('User not found');
+        return this.prismaService.user.update({
+            where: { id: userId },
+            data: { isDeleted: true },
+        });
+    }
+
     async createUserByRole(
         data: Prisma.UserCreateInput,
         prisma: PrismaService = this.prismaService,

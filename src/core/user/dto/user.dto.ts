@@ -103,6 +103,14 @@ export class UserDto implements UserInterface {
     @Type(() => Number)
     profileImageId?: number;
 
+    @ApiProperty({
+        description: 'The ID of the inventory linked to the user',
+        required: false,
+    })
+    @IsOptional()
+    @IsInt()
+    inventoryId?: number;
+
     ip: string;
 }
 
@@ -253,6 +261,14 @@ export class AdminCreateUserDto {
     @IsOptional()
     @IsPhoneNumber()
     phoneNumber?: string;
+
+    @ApiProperty({
+        description: 'The ID of the inventory to link the user to',
+        required: true,
+    })
+    @IsNotEmpty()
+    @IsInt()
+    inventoryId: number;
 }
 
 export class CreateUserDto {
@@ -361,6 +377,14 @@ export class CreateUserDto {
     @IsOptional()
     @IsPhoneNumber()
     phoneNumber?: string;
+
+    @ApiProperty({
+        description: 'The ID of the inventory linked to the user',
+        required: false,
+    })
+    @IsOptional()
+    @IsInt()
+    inventoryId?: number;
 }
 
 export class UpdateUserDto extends PartialType(
