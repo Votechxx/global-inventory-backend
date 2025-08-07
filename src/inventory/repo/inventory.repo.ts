@@ -37,7 +37,8 @@ export class InventoryRepo {
             where,
             take,
             skip,
-            include: { workers: true, products: true },
+            include: { workers: { orderBy: { createdAt: 'desc' } },products: true },
+            
         });
     }
 

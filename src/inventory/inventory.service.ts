@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Inventory, RoleEnum } from '@prisma/client';
 import { PrismaService } from 'src/common/modules/prisma/prisma.service';
-import { CreateInventoryDto, UpdateInventoryDto, AddWorkerToInventoryDto, MoveWorkerDto } from './dto/inventory.dto';
+import { CreateInventoryDto, UpdateInventoryDto, AddWorkerToInventoryDto, MoveWorkerDto, InventoryQueryDto } from './dto/inventory.dto';
 import { InventoryRepo } from './repo/inventory.repo';
 import { InventoryHelper } from './helpers/inventory.helper';
 
@@ -25,8 +25,8 @@ export class InventoryService {
         return this.inventoryRepo.deleteInventory(id);
     }
 
-    async getInventories(inventoryQueryDto: any, user: any) {
-        const { page = 1, limit = 20, name, ...filter } = inventoryQueryDto;
+    async getInventories(inventoryQueryDto: InventoryQueryDto, user: any) {
+        const { page = 1, limit = 20, name, sortOrder = 'desc', ...filter } = inventoryQueryDto;
         const take = Math.min(limit, 50);
         const skip = (page - 1) * take;
 
@@ -34,13 +34,28 @@ export class InventoryService {
         if (name) where.name = { contains: name, mode: 'insensitive' };
         if (user.role !== RoleEnum.ADMIN) where.workers = { some: { id: user.id } };
 
-        const inventories = await this.inventoryRepo.getInventories(where, take, skip);
-        const count = await this.inventoryRepo.getInventoryCount(where);
+        // Fetch inventories with pagination and sorting of workers
+        const inventories = await this.prismaService.inventory.findMany({
+            where,
+            take,
+            skip,
+            include: {
+                workers: { orderBy: { createdAt: sortOrder } }, // sort workers by createdAt
+                products: true,
+            },
+        });
+        const count = await this.prismaService.inventory.count({ where });
+
+        // add workers count to each inventory
+        const result = inventories.map(inventory => ({
+            ...inventory,
+            workerCount: inventory.workers.length,
+        }));
 
         return {
             totalDocs: count,
-            count: inventories.length,
-            inventories,
+            count: result.length,
+            inventories: result,
         };
     }
 
@@ -50,7 +65,10 @@ export class InventoryService {
             include: { inventory: { include: { products: true, workers: true } } },
         });
         if (!user?.inventory) throw new NotFoundException('No inventory assigned');
-        return user.inventory;
+        return {
+            ...user.inventory,
+            workerCount: user.inventory.workers.length,
+        };
     }
 
     async addWorkerToInventory(id: number, workerId: number) {

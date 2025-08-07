@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsOptional, IsArray, ValidateNested, IsInt } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsArray, ValidateNested, IsInt, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 
@@ -56,4 +56,45 @@ export class MoveWorkerDto {
     @IsNotEmpty()
     @IsInt()
     targetInventoryId: number;
+}
+
+export enum SortOrder {
+    ASC = 'asc',  // oldest
+    DESC = 'desc', // latest
+}
+
+export class InventoryQueryDto {
+    @ApiProperty({
+        description: 'Filter by inventory name',
+        required: false,
+    })
+    @IsOptional()
+    @IsString()
+    name?: string;
+
+    @ApiProperty({
+        description: 'Page number',
+        required: false,
+        default: 1,
+    })
+    @IsOptional()
+    page?: number;
+
+    @ApiProperty({
+        description: 'Items per page',
+        required: false,
+        default: 20,
+    })
+    @IsOptional()
+    limit?: number;
+
+    @ApiProperty({
+        description: 'Sort order for workers by createdAt (asc for oldest, desc for newest)',
+        required: false,
+        enum: SortOrder,
+        default: SortOrder.DESC,
+    })
+    @IsOptional()
+    @IsEnum(SortOrder)
+    sortOrder?: SortOrder;
 }
