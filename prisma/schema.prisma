@@ -56,13 +56,12 @@ model User {
 
   ProfileImage File? @relation(fields: [profileImageId], references: [id], onDelete: SetNull)
 }
-
 model Product {
   id          Int           @id @default(autoincrement())
   uuid        String        @unique @default(uuid())
   name        String        @unique
   price       Float
-  inventoryId Int?          @unique // يرتبط بمخزن واحد فقط، nullable لو المنتج لسه مش مرتبط
+  inventoryId Int?          @unique
   inventory   Inventory?    @relation(fields: [inventoryId], references: [id])
   productUnits ProductUnit[]
   createdAt   DateTime      @default(now())
@@ -74,8 +73,8 @@ model Product {
 model ProductUnit {
   id        Int     @id @default(autoincrement())
   uuid      String  @unique @default(uuid())
-  value     Int     @default(1) // number of units in this product unit
-  quantity  Int     @default(0) // quantity of this product unit
+  value     Int     @default(1)
+  quantity  Int     @default(0)
   productId Int
   product   Product @relation(fields: [productId], references: [id])
   createdAt DateTime @default(now())
@@ -88,7 +87,7 @@ model Inventory {
   name        String       
   description String?
   location    String?
-  products    Product[]    @relation("ProductInventory") 
+  products    Product[]    @relation("ProductInventory")
   workers     User[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt

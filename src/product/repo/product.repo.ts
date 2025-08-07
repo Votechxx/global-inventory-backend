@@ -13,17 +13,17 @@ export class ProductRepo {
                 id: true,
                 name: true,
                 price: true,
+                inventory: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
                 productUnits: {
                     select: {
                         id: true,
                         value: true,
                         quantity: true,
-                    },
-                },
-                inventories: {
-                    select: {
-                        id: true,
-                        name: true,
                     },
                 },
             },
@@ -39,17 +39,17 @@ export class ProductRepo {
                 id: true,
                 name: true,
                 price: true,
+                inventory: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
                 productUnits: {
                     select: {
                         id: true,
                         value: true,
                         quantity: true,
-                    },
-                },
-                inventories: {
-                    select: {
-                        id: true,
-                        name: true,
                     },
                 },
             },
@@ -71,17 +71,17 @@ export class ProductRepo {
                 id: true,
                 name: true,
                 price: true,
+                inventory: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
                 productUnits: {
                     select: {
                         id: true,
                         value: true,
                         quantity: true,
-                    },
-                },
-                inventories: {
-                    select: {
-                        id: true,
-                        name: true,
                     },
                 },
             },
@@ -99,17 +99,17 @@ export class ProductRepo {
                 id: true,
                 name: true,
                 price: true,
+                inventory: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
                 productUnits: {
                     select: {
                         id: true,
                         value: true,
                         quantity: true,
-                    },
-                },
-                inventories: {
-                    select: {
-                        id: true,
-                        name: true,
                     },
                 },
             },
