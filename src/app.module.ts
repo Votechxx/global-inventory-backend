@@ -11,7 +11,7 @@ import { UserRepo } from './core/user/repo/user.repo';
 import { FileModule } from './file/file.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { ProductModule } from './product/product.module';
-import { ProductController } from './g/product/product.controller';
+import { ProductController } from './product/product.controller';
 
 @Module({
     imports: [
