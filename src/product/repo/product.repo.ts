@@ -7,13 +7,53 @@ export class ProductRepo {
     constructor(private readonly prismaService: PrismaService) {}
 
     async getProductById(id: number) {
-        const product = await this.prismaService.product.findUnique({ where: { id } });
+        const product = await this.prismaService.product.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                name: true,
+                price: true,
+                productUnits: {
+                    select: {
+                        id: true,
+                        value: true,
+                        quantity: true,
+                    },
+                },
+                inventories: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+            },
+        });
         if (!product) throw new NotFoundException('Product not found');
         return product;
     }
 
     async getProductByName(name: string) {
-        return this.prismaService.product.findFirst({ where: { name } });
+        return this.prismaService.product.findFirst({
+            where: { name },
+            select: {
+                id: true,
+                name: true,
+                price: true,
+                productUnits: {
+                    select: {
+                        id: true,
+                        value: true,
+                        quantity: true,
+                    },
+                },
+                inventories: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+            },
+        });
     }
 
     async createProduct(data: Prisma.ProductCreateInput) {
@@ -24,11 +64,55 @@ export class ProductRepo {
 
     async updateProduct(id: number, data: Prisma.ProductUpdateInput) {
         const product = await this.getProductById(id);
-        return this.prismaService.product.update({ where: { id }, data });
+        return this.prismaService.product.update({
+            where: { id },
+            data,
+            select: {
+                id: true,
+                name: true,
+                price: true,
+                productUnits: {
+                    select: {
+                        id: true,
+                        value: true,
+                        quantity: true,
+                    },
+                },
+                inventories: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+            },
+        });
     }
 
     async deleteProduct(id: number) {
         const product = await this.getProductById(id);
         return this.prismaService.product.delete({ where: { id } });
+    }
+
+    async getAllProducts() {
+        return this.prismaService.product.findMany({
+            select: {
+                id: true,
+                name: true,
+                price: true,
+                productUnits: {
+                    select: {
+                        id: true,
+                        value: true,
+                        quantity: true,
+                    },
+                },
+                inventories: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+            },
+        });
     }
 }

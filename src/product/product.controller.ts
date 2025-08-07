@@ -46,6 +46,17 @@ export class ProductController {
         return this.productService.getProduct(+id);
     }
 
+    @UseGuards(AuthGuard('jwt'))
+    @ApiBearerAuth('default')
+    @ApiOperation({
+        summary: 'Get all products',
+        description: 'Get a list of all products',
+    })
+    @Get()
+    async getAllProducts() {
+        return this.productService.getAllProducts();
+    }
+
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(RoleEnum.ADMIN)
     @ApiBearerAuth('default')

@@ -57,41 +57,44 @@ model User {
   ProfileImage File? @relation(fields: [profileImageId], references: [id], onDelete: SetNull)
 }
 
-model Inventory {
-  id          Int          @id @default(autoincrement())
-  uuid        String       @unique @default(uuid())
-  name        String       
-  description String?
-  location    String?
-  products    Product[]    @relation("ProductInventories") 
-  workers     User[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-}
-
-
 model Product {
   id          Int           @id @default(autoincrement())
   uuid        String        @unique @default(uuid())
   name        String        @unique
   price       Float
+  inventoryId Int?          @unique // يرتبط بمخزن واحد فقط، nullable لو المنتج لسه مش مرتبط
+  inventory   Inventory?    @relation(fields: [inventoryId], references: [id])
   productUnits ProductUnit[]
-  inventories Inventory[]   @relation("ProductInventories") 
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+
+  Inventory Inventory[] @relation("ProductInventory")
 }
 
 model ProductUnit {
   id        Int     @id @default(autoincrement())
   uuid      String  @unique @default(uuid())
   value     Int     @default(1) // number of units in this product unit
-  quantity  Int     @default(0) // total quantity of this product unit
+  quantity  Int     @default(0) // quantity of this product unit
   productId Int
   product   Product @relation(fields: [productId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+model Inventory {
+  id          Int          @id @default(autoincrement())
+  uuid        String       @unique @default(uuid())
+  name        String       
+  description String?
+  location    String?
+  products    Product[]    @relation("ProductInventory") 
+  workers     User[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  Product Product[]
+}
 
 // model Shipment {
 //   id            Int       @id @default(autoincrement())

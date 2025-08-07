@@ -19,10 +19,30 @@ export class ProductService {
     }
 
     async getProduct(id: number) {
-        return this.productRepo.getProductById(id);
+        const product = await this.productRepo.getProductById(id);
+        // value and quantity are multiplied to get total units
+        product.productUnits = product.productUnits.map(unit => ({
+            ...unit,
+            totalUnits: unit.value * unit.quantity,
+        }));
+        return product;
+    }
+
+    async getAllProducts() {
+        const products = await this.productRepo.getAllProducts();
+        return products.map(product => ({
+            ...product,
+            productUnits: product.productUnits.map(unit => ({
+                ...unit,
+                totalUnits: unit.value * unit.quantity,
+            })),
+        }));
     }
 
     async updateProduct(id: number, updateProductDto: UpdateProductDto) {
+        const existingProduct = await this.productRepo.getProductById(id);
+        if (!existingProduct) throw new NotFoundException('Product not found');
+
         return this.productRepo.updateProduct(id, {
             name: updateProductDto.name,
             price: updateProductDto.price,
@@ -43,11 +63,26 @@ export class ProductService {
         const inventory = await this.prismaService.inventory.findUnique({ where: { id: addToInventoryDto.inventoryId } });
         if (!inventory) throw new NotFoundException('Inventory not found');
 
-        return this.prismaService.product.update({
+        // update quantity
+        const updatedProduct = await this.prismaService.product.update({
             where: { id },
             data: {
                 inventories: { connect: { id: addToInventoryDto.inventoryId } },
+                productUnits: {
+                    updateMany: {
+                        where: {},
+                        data: { quantity: { increment: addToInventoryDto.quantity } },
+                    },
+                },
             },
+            include: { productUnits: true, inventories: true },
         });
+
+        // calculate total quantity
+        updatedProduct.productUnits = updatedProduct.productUnits.map(unit => ({
+            ...unit,
+            totalUnits: unit.value * unit.quantity,
+        }));
+        return updatedProduct;
     }
 }
