@@ -1,6 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/common/modules/prisma/prisma.service';
-import { CreateProductDto, UpdateProductDto, AddToInventoryDto } from './dto/product.dto';
+import {
+    CreateProductDto,
+    UpdateProductDto,
+    AddToInventoryDto,
+} from './dto/product.dto';
 import { ProductRepo } from './repo/product.repo';
 
 @Injectable()
@@ -14,8 +18,17 @@ export class ProductService {
         return this.productRepo.createProduct({
             name: createProductDto.name,
             price: createProductDto.price,
-            inventory: createProductDto.inventoryId ? { connect: { id: createProductDto.inventoryId } } : undefined, // استخدام connect للربط
-            productUnits: createProductDto.productUnits ? { create: createProductDto.productUnits } : undefined,
+            inventory: createProductDto.inventoryId
+                ? { connect: { id: createProductDto.inventoryId } }
+                : undefined, // استخدام connect للربط
+            productUnits: createProductDto.productUnits
+                ? {
+                      create: createProductDto.productUnits.map((unit) => ({
+                          quantity: unit.quantity,
+                          value: unit.value, // Ensure 'value' is provided
+                      })),
+                  }
+                : undefined,
         });
     }
 
@@ -24,7 +37,7 @@ export class ProductService {
         if (!product) throw new NotFoundException('Product not found');
 
         if (product.productUnits && Array.isArray(product.productUnits)) {
-            product.productUnits = product.productUnits.map(unit => ({
+            product.productUnits = product.productUnits.map((unit) => ({
                 ...unit,
                 totalUnits: unit.value * unit.quantity,
             }));
@@ -34,9 +47,9 @@ export class ProductService {
 
     async getAllProducts() {
         const products = await this.productRepo.getAllProducts();
-        return products.map(product => {
+        return products.map((product) => {
             if (product.productUnits && Array.isArray(product.productUnits)) {
-                product.productUnits = product.productUnits.map(unit => ({
+                product.productUnits = product.productUnits.map((unit) => ({
                     ...unit,
                     totalUnits: unit.value * unit.quantity,
                 }));
@@ -52,7 +65,9 @@ export class ProductService {
         return this.productRepo.updateProduct(id, {
             name: updateProductDto.name,
             price: updateProductDto.price,
-            inventory: updateProductDto.inventoryId ? { connect: { id: updateProductDto.inventoryId } } : undefined, // استخدام connect
+            inventory: updateProductDto.inventoryId
+                ? { connect: { id: updateProductDto.inventoryId } }
+                : undefined, // استخدام connect
             productUnits: updateProductDto.productUnits
                 ? { deleteMany: {}, create: updateProductDto.productUnits }
                 : undefined,
@@ -67,7 +82,9 @@ export class ProductService {
         const product = await this.productRepo.getProductById(id);
         if (!product) throw new NotFoundException('Product not found');
 
-        const inventory = await this.prismaService.inventory.findUnique({ where: { id: addToInventoryDto.inventoryId } });
+        const inventory = await this.prismaService.inventory.findUnique({
+            where: { id: addToInventoryDto.inventoryId },
+        });
         if (!inventory) throw new NotFoundException('Inventory not found');
 
         const updatedProduct = await this.prismaService.product.update({
@@ -77,7 +94,9 @@ export class ProductService {
                 productUnits: {
                     updateMany: {
                         where: {},
-                        data: { quantity: { increment: addToInventoryDto.quantity } },
+                        data: {
+                            quantity: { increment: addToInventoryDto.quantity },
+                        },
                     },
                 },
             },
@@ -94,11 +113,16 @@ export class ProductService {
             },
         });
 
-        if (updatedProduct.productUnits && Array.isArray(updatedProduct.productUnits)) {
-            updatedProduct.productUnits = updatedProduct.productUnits.map(unit => ({
-                ...unit,
-                totalUnits: unit.value * unit.quantity,
-            }));
+        if (
+            updatedProduct.productUnits &&
+            Array.isArray(updatedProduct.productUnits)
+        ) {
+            updatedProduct.productUnits = updatedProduct.productUnits.map(
+                (unit) => ({
+                    ...unit,
+                    totalUnits: unit.value * unit.quantity,
+                }),
+            );
         }
         return updatedProduct;
     }
