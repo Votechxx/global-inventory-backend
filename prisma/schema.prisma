@@ -30,8 +30,8 @@ model User {
   role           RoleEnum @default(USER)
   profileImageId Int?     @unique
 
-  inventoryId   Int?
-  inventory     Inventory?    @relation(fields: [inventoryId], references: [id])
+  inventoryId Int?
+  inventory   Inventory? @relation(fields: [inventoryId], references: [id])
 
   dob         DateTime?
   gender      GenderEnum?
@@ -56,91 +56,51 @@ model User {
 
   ProfileImage File? @relation(fields: [profileImageId], references: [id], onDelete: SetNull)
 }
-model Product {
-  id          Int           @id @default(autoincrement())
-  uuid        String        @unique @default(uuid())
-  name        String        @unique
-  price       Float
-  inventoryId Int?          @unique
-  inventory   Inventory?    @relation(fields: [inventoryId], references: [id])
-  productUnits ProductUnit[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
 
-  Inventory Inventory[] @relation("ProductInventory")
+model Product {
+  id   Int    @id @default(autoincrement())
+  uuid String @unique @default(uuid())
+
+  name  String @unique
+  price Float
+
+  inventoryId Int
+  inventory   Inventory? @relation(fields: [inventoryId], references: [id])
+
+  productUnits ProductUnit[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ProductUnit {
-  id        Int     @id @default(autoincrement())
-  uuid      String  @unique @default(uuid())
-  value     Int     @default(1)
-  quantity  Int     @default(0)
+  id   Int    @id @default(autoincrement())
+  uuid String @unique @default(uuid())
+
+  value    Int
+  quantity Int @default(0)
+
   productId Int
   product   Product @relation(fields: [productId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Inventory {
-  id          Int          @id @default(autoincrement())
-  uuid        String       @unique @default(uuid())
-  name        String       
+  id   Int    @id @default(autoincrement())
+  uuid String @unique @default(uuid())
+
+  name        String
   description String?
   location    String?
-  products    Product[]    @relation("ProductInventory")
-  workers     User[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workers User[]
   Product Product[]
 }
-
-// model Shipment {
-//   id            Int       @id @default(autoincrement())
-//   uuid          String    @unique @default(uuid())
-//   inventoryId   Int
-//   inventory     Inventory @relation(fields: [inventoryId], references: [id])
-//   productId     Int
-//   product       Product   @relation(fields: [productId], references: [id])
-//   quantity      Int
-//   cost          Float
-//   createdAt     DateTime  @default(now())
-// }
-
-// model Transaction {
-//   id            Int       @id @default(autoincrement())
-//   uuid          String    @unique @default(uuid())
-//   inventoryId   Int
-//   inventory     Inventory @relation(fields: [inventoryId], references: [id])
-//   productId     Int
-//   product       Product   @relation(fields: [productId], references: [id])
-//   quantity      Int
-//   type          TransactionTypeEnum    // "ADD", "REMOVE", "TRANSFER"
-//   workerId      Int
-//   worker        User      @relation(fields: [workerId], references: [id])
-//   createdAt     DateTime  @default(now())
-// }
-
-// model DailyReport {
-//   id            Int       @id @default(autoincrement())
-//   uuid          String    @unique @default(uuid())
-//   inventoryId   Int
-//   inventory     Inventory @relation(fields: [inventoryId], references: [id])
-//   workerId      Int
-//   worker        User      @relation(fields: [workerId], references: [id])
-//   stock         Json      // { productId: quantity }
-//   cashOnHand    Float
-//   bankDeposit   Float
-//   revenue       Float
-//   lossPercentage Float
-//   finalBalance  Float
-//   status        StatusDailyReportEnum    // "PENDING", "APPROVED", "REJECTED"
-//   rejectionReason String?
-//   createdAt     DateTime  @default(now())
-//   updatedAt     DateTime  @updatedAt
-// }
-
-
 
 model File {
   id   Int    @id @default(autoincrement())
