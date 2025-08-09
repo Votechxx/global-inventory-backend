@@ -12,6 +12,7 @@ import { FileModule } from './file/file.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { ProductModule } from './product/product.module';
 import { ProductController } from './product/product.controller';
+import { ExpenseModule } from './expense/expense.module';
 
 @Module({
     imports: [
@@ -28,7 +29,8 @@ import { ProductController } from './product/product.controller';
         OtpModule,
         FileModule,
         InventoryModule,
-        ProductModule, 
+        ProductModule,
+        ExpenseModule, 
     ],
     controllers: [ProductController],
     providers: [UserRepo],

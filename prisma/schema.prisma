@@ -87,59 +87,28 @@ model Inventory {
   name        String       
   description String?
   location    String?
+  balance     Float        @default(0)
   products    Product[]    @relation("ProductInventory")
   workers     User[]
+  expenses    Expense[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
   Product Product[]
 }
 
-// model Shipment {
-//   id            Int       @id @default(autoincrement())
-//   uuid          String    @unique @default(uuid())
-//   inventoryId   Int
-//   inventory     Inventory @relation(fields: [inventoryId], references: [id])
-//   productId     Int
-//   product       Product   @relation(fields: [productId], references: [id])
-//   quantity      Int
-//   cost          Float
-//   createdAt     DateTime  @default(now())
-// }
-
-// model Transaction {
-//   id            Int       @id @default(autoincrement())
-//   uuid          String    @unique @default(uuid())
-//   inventoryId   Int
-//   inventory     Inventory @relation(fields: [inventoryId], references: [id])
-//   productId     Int
-//   product       Product   @relation(fields: [productId], references: [id])
-//   quantity      Int
-//   type          TransactionTypeEnum    // "ADD", "REMOVE", "TRANSFER"
-//   workerId      Int
-//   worker        User      @relation(fields: [workerId], references: [id])
-//   createdAt     DateTime  @default(now())
-// }
-
-// model DailyReport {
-//   id            Int       @id @default(autoincrement())
-//   uuid          String    @unique @default(uuid())
-//   inventoryId   Int
-//   inventory     Inventory @relation(fields: [inventoryId], references: [id])
-//   workerId      Int
-//   worker        User      @relation(fields: [workerId], references: [id])
-//   stock         Json      // { productId: quantity }
-//   cashOnHand    Float
-//   bankDeposit   Float
-//   revenue       Float
-//   lossPercentage Float
-//   finalBalance  Float
-//   status        StatusDailyReportEnum    // "PENDING", "APPROVED", "REJECTED"
-//   rejectionReason String?
-//   createdAt     DateTime  @default(now())
-//   updatedAt     DateTime  @updatedAt
-// }
-
+model Expense {
+  id          Int         @id @default(autoincrement())
+  uuid        String      @unique @default(uuid())
+  name        String      
+  amount      Float       
+  description String?     
+  tag         ExpenseTag  
+  inventoryId Int         
+  inventory   Inventory   @relation(fields: [inventoryId], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
 
 
 model File {
@@ -161,6 +130,7 @@ model File {
 
   User User? @relation
 }
+
 
 enum FileTypeEnum {
   IMAGE
@@ -201,4 +171,11 @@ enum TransactionTypeEnum {
   ADD
   REMOVE
   TRANSFER
+}
+
+enum ExpenseTag {
+  GAS
+  ELECTRICITY
+  WATER
+  OTHER
 }

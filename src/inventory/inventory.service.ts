@@ -14,11 +14,23 @@ export class InventoryService {
     ) {}
 
     async createInventory(createInventoryDto: CreateInventoryDto) {
-        return this.inventoryRepo.createInventory(createInventoryDto);
+        const data: any = {
+            name: createInventoryDto.name,
+            description: createInventoryDto.description,
+            location: createInventoryDto.location,
+            balance: createInventoryDto.balance || 0, 
+        };
+        return this.inventoryRepo.createInventory(data);
     }
 
     async updateInventory(id: number, updateInventoryDto: UpdateInventoryDto) {
-        return this.inventoryRepo.updateInventory(id, updateInventoryDto);
+        const data: any = {
+            name: updateInventoryDto.name,
+            description: updateInventoryDto.description,
+            location: updateInventoryDto.location,
+            balance: updateInventoryDto.balance,
+        };
+        return this.inventoryRepo.updateInventory(id, data);
     }
 
     async deleteInventory(id: number) {
@@ -34,19 +46,17 @@ export class InventoryService {
         if (name) where.name = { contains: name, mode: 'insensitive' };
         if (user.role !== RoleEnum.ADMIN) where.workers = { some: { id: user.id } };
 
-        // Fetch inventories with pagination and sorting of workers
         const inventories = await this.prismaService.inventory.findMany({
             where,
             take,
             skip,
             include: {
-                workers: { orderBy: { createdAt: sortOrder } }, // sort workers by createdAt
+                workers: { orderBy: { createdAt: sortOrder } },
                 products: true,
             },
         });
         const count = await this.prismaService.inventory.count({ where });
 
-        // add workers count to each inventory
         const result = inventories.map(inventory => ({
             ...inventory,
             workerCount: inventory.workers.length,
