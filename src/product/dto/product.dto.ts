@@ -9,7 +9,7 @@ import {
     ArrayMinSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 
 export class CreateProductUnitDto {
     @ApiProperty({
@@ -73,7 +73,9 @@ export class CreateProductDto {
     inventoryId: number;
 }
 
-export class UpdateProductDto extends PartialType(CreateProductDto) {}
+export class UpdateProductDto extends PartialType(
+    OmitType(CreateProductDto, ['inventoryId']),
+) {}
 
 export class AddToInventoryDto {
     @ApiProperty({

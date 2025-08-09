@@ -39,7 +39,6 @@ export class ProductService {
         if (product.productUnits && Array.isArray(product.productUnits)) {
             product.productUnits = product.productUnits.map((unit) => ({
                 ...unit,
-                totalUnits: unit.value * unit.quantity,
             }));
         }
         return product;
@@ -51,7 +50,6 @@ export class ProductService {
             if (product.productUnits && Array.isArray(product.productUnits)) {
                 product.productUnits = product.productUnits.map((unit) => ({
                     ...unit,
-                    totalUnits: unit.value * unit.quantity,
                 }));
             }
             return product;
@@ -65,9 +63,6 @@ export class ProductService {
         return this.productRepo.updateProduct(id, {
             name: updateProductDto.name,
             price: updateProductDto.price,
-            inventory: updateProductDto.inventoryId
-                ? { connect: { id: updateProductDto.inventoryId } }
-                : undefined, // استخدام connect
             productUnits: updateProductDto.productUnits
                 ? { deleteMany: {}, create: updateProductDto.productUnits }
                 : undefined,
@@ -75,6 +70,8 @@ export class ProductService {
     }
 
     async deleteProduct(id: number) {
+        const existingProduct = await this.productRepo.getProductById(id);
+        if (!existingProduct) throw new NotFoundException('Product not found');
         return this.productRepo.deleteProduct(id);
     }
 
@@ -120,7 +117,6 @@ export class ProductService {
             updatedProduct.productUnits = updatedProduct.productUnits.map(
                 (unit) => ({
                     ...unit,
-                    totalUnits: unit.value * unit.quantity,
                 }),
             );
         }
