@@ -9,6 +9,9 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UserRepo } from './core/user/repo/user.repo';
 import { FileModule } from './file/file.module';
+import { InventoryModule } from './inventory/inventory.module';
+import { ProductModule } from './product/product.module';
+import { ProductController } from './product/product.controller';
 
 @Module({
     imports: [
@@ -24,8 +27,10 @@ import { FileModule } from './file/file.module';
         EmailModule,
         OtpModule,
         FileModule,
+        InventoryModule,
+        ProductModule, 
     ],
-    controllers: [],
+    controllers: [ProductController],
     providers: [UserRepo],
 })
 export class AppModule {}

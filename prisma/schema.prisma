@@ -33,9 +33,6 @@ model User {
   inventoryId Int?
   inventory   Inventory? @relation(fields: [inventoryId], references: [id])
 
-  dailyReports DailyReport[]
-  transactions Transaction[]
-
   dob         DateTime?
   gender      GenderEnum?
   nationality String?
@@ -60,99 +57,49 @@ model User {
   ProfileImage File? @relation(fields: [profileImageId], references: [id], onDelete: SetNull)
 }
 
-model Inventory {
+model Product {
   id   Int    @id @default(autoincrement())
   uuid String @unique @default(uuid())
 
-  name String @unique
+  name  String @unique
+  price Float
 
-  description String?
-  location    String?
-  balance     Float   @default(0)
+  inventoryId Int
+  inventory   Inventory? @relation(fields: [inventoryId], references: [id])
 
-  isDeleted Boolean @default(false)
-
-  products     InventoryProduct[]
-  workers      User[]
-  shipments    Shipment[]
-  dailyReports DailyReport[]
-  transactions Transaction[]
+  productUnits ProductUnit[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Product {
-  id           Int                @id @default(autoincrement())
-  uuid         String             @unique @default(uuid())
-  name         String
-  description  String?
-  unitPrice    Float
-  sku          String             @unique
-  inventories  InventoryProduct[]
-  shipments    Shipment[]
-  transactions Transaction[]
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
+model ProductUnit {
+  id   Int    @id @default(autoincrement())
+  uuid String @unique @default(uuid())
+
+  value    Int
+  quantity Int @default(0)
+
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model InventoryProduct {
-  id          Int       @id @default(autoincrement())
-  uuid        String    @unique @default(uuid())
-  inventoryId Int
-  inventory   Inventory @relation(fields: [inventoryId], references: [id])
-  productId   Int
-  product     Product   @relation(fields: [productId], references: [id])
-  quantity    Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+model Inventory {
+  id   Int    @id @default(autoincrement())
+  uuid String @unique @default(uuid())
 
-  @@unique([inventoryId, productId])
-}
+  name        String
+  description String?
+  location    String?
 
-model Shipment {
-  id          Int       @id @default(autoincrement())
-  uuid        String    @unique @default(uuid())
-  inventoryId Int
-  inventory   Inventory @relation(fields: [inventoryId], references: [id])
-  productId   Int
-  product     Product   @relation(fields: [productId], references: [id])
-  quantity    Int
-  cost        Float
-  createdAt   DateTime  @default(now())
-}
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-model Transaction {
-  id          Int                 @id @default(autoincrement())
-  uuid        String              @unique @default(uuid())
-  inventoryId Int
-  inventory   Inventory           @relation(fields: [inventoryId], references: [id])
-  productId   Int
-  product     Product             @relation(fields: [productId], references: [id])
-  quantity    Int
-  type        TransactionTypeEnum // "ADD", "REMOVE", "TRANSFER"
-  workerId    Int
-  worker      User                @relation(fields: [workerId], references: [id])
-  createdAt   DateTime            @default(now())
-}
-
-model DailyReport {
-  id              Int                   @id @default(autoincrement())
-  uuid            String                @unique @default(uuid())
-  inventoryId     Int
-  inventory       Inventory             @relation(fields: [inventoryId], references: [id])
-  workerId        Int
-  worker          User                  @relation(fields: [workerId], references: [id])
-  stock           Json // { productId: quantity }
-  cashOnHand      Float
-  bankDeposit     Float
-  revenue         Float
-  lossPercentage  Float
-  finalBalance    Float
-  status          StatusDailyReportEnum // "PENDING", "APPROVED", "REJECTED"
-  rejectionReason String?
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
+  workers User[]
+  Product Product[]
 }
 
 model File {
