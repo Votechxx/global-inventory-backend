@@ -54,7 +54,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  ProfileImage File? @relation(fields: [profileImageId], references: [id], onDelete: SetNull)
+  ProfileImage File?     @relation(fields: [profileImageId], references: [id], onDelete: SetNull)
+  Expense      Expense[]
 }
 
 model Product {
@@ -100,6 +101,26 @@ model Inventory {
 
   workers User[]
   Product Product[]
+  Expense Expense[]
+}
+
+model Expense {
+  id   Int    @id @default(autoincrement())
+  uuid String @unique @default(uuid())
+
+  userId Int
+
+  name        String
+  amount      Float
+  description String?
+  tag         ExpenseTag
+  inventoryId Int
+
+  user      User      @relation(fields: [userId], references: [id])
+  inventory Inventory @relation(fields: [inventoryId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model File {
@@ -120,6 +141,13 @@ model File {
   isUsed Boolean @default(false)
 
   User User? @relation
+}
+
+enum ExpenseTag {
+  GAS
+  ELECTRICITY
+  WATER
+  OTHER
 }
 
 enum FileTypeEnum {
