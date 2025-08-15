@@ -56,6 +56,7 @@ model User {
 
   ProfileImage File?     @relation(fields: [profileImageId], references: [id], onDelete: SetNull)
   Expense      Expense[]
+  Reports Report[]
 }
 
 model Product {
@@ -78,7 +79,7 @@ model ProductUnit {
   id   Int    @id @default(autoincrement())
   uuid String @unique @default(uuid())
 
-  value    Int
+  batch   Int  @default(0)
   quantity Int @default(0)
 
   productId Int
@@ -89,12 +90,17 @@ model ProductUnit {
 }
 
 model Inventory {
-  id   Int    @id @default(autoincrement())
-  uuid String @unique @default(uuid())
-
-  name        String
-  description String?
-  location    String?
+  id             Int          @id @default(autoincrement())
+  uuid           String       @unique @default(uuid())
+  name           String       
+  description    String?
+  location       String?
+  currentBalance Float?      @default(0)   // الرصيد الحالي
+  totalBalance   Float?       @default(0)  // الرصيد الإجمالي
+  cashOnHand     Float?       @default(0)  // المبلغ النقدي الحالي
+  bankDeposit    Float?       @default(0)  // المبلغ المودع
+  totalExpenses  Float?       @default(0) 
+  depositReceipts File[]      @relation("InventoryDepositReceipts")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -102,6 +108,27 @@ model Inventory {
   workers User[]
   Product Product[]
   Expense Expense[]
+  Reports Report[]
+
+}
+
+model Report {
+  id            Int         @id @default(autoincrement())
+  uuid          String      @unique @default(uuid())
+  inventoryId   Int
+  workerId      Int
+  stock         Json        
+  cashOnHand    Float
+  bankDeposit   Float
+  status        StatusReportEnum  @default(PENDING)
+  rejectionReason String?
+  inventory     Inventory   @relation(fields: [inventoryId], references: [id])
+  worker        User        @relation(fields: [workerId], references: [id])
+ depositReceiptId Int?     @unique
+ depositReceipt File?      @relation(fields: [depositReceiptId], references: [id], onDelete: SetNull)
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 model Expense {
@@ -141,6 +168,9 @@ model File {
   isUsed Boolean @default(false)
 
   User User? @relation
+  Inventory Inventory[] @relation("InventoryDepositReceipts")
+
+  Report Report[]
 }
 
 enum ExpenseTag {
@@ -179,7 +209,7 @@ enum UserCreationMethodEnum {
   MANUAL
 }
 
-enum StatusDailyReportEnum {
+enum StatusReportEnum {
   PENDING
   APPROVED
   REJECTED

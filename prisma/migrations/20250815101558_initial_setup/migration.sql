@@ -1,4 +1,7 @@
 -- CreateEnum
+CREATE TYPE "public"."ExpenseTag" AS ENUM ('GAS', 'ELECTRICITY', 'WATER', 'OTHER');
+
+-- CreateEnum
 CREATE TYPE "public"."FileTypeEnum" AS ENUM ('IMAGE', 'VIDEO', 'DOCUMENT');
 
 -- CreateEnum
@@ -14,7 +17,7 @@ CREATE TYPE "public"."RoleEnum" AS ENUM ('ADMIN', 'USER');
 CREATE TYPE "public"."UserCreationMethodEnum" AS ENUM ('EMAIL', 'GOOGLE', 'APPLE', 'MANUAL');
 
 -- CreateEnum
-CREATE TYPE "public"."StatusDailyReportEnum" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
+CREATE TYPE "public"."StatusReportEnum" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
 
 -- CreateEnum
 CREATE TYPE "public"."TransactionTypeEnum" AS ENUM ('ADD', 'REMOVE', 'TRANSFER');
@@ -73,7 +76,7 @@ CREATE TABLE "public"."Product" (
 CREATE TABLE "public"."ProductUnit" (
     "id" SERIAL NOT NULL,
     "uuid" TEXT NOT NULL,
-    "value" INTEGER NOT NULL,
+    "batch" INTEGER NOT NULL DEFAULT 0,
     "quantity" INTEGER NOT NULL DEFAULT 0,
     "productId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -89,10 +92,49 @@ CREATE TABLE "public"."Inventory" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "location" TEXT,
+    "currentBalance" DOUBLE PRECISION DEFAULT 0,
+    "totalBalance" DOUBLE PRECISION DEFAULT 0,
+    "cashOnHand" DOUBLE PRECISION DEFAULT 0,
+    "bankDeposit" DOUBLE PRECISION DEFAULT 0,
+    "totalExpenses" DOUBLE PRECISION DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Inventory_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."Report" (
+    "id" SERIAL NOT NULL,
+    "uuid" TEXT NOT NULL,
+    "inventoryId" INTEGER NOT NULL,
+    "workerId" INTEGER NOT NULL,
+    "stock" JSONB NOT NULL,
+    "cashOnHand" DOUBLE PRECISION NOT NULL,
+    "bankDeposit" DOUBLE PRECISION NOT NULL,
+    "status" "public"."StatusReportEnum" NOT NULL DEFAULT 'PENDING',
+    "rejectionReason" TEXT,
+    "depositReceiptId" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Report_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."Expense" (
+    "id" SERIAL NOT NULL,
+    "uuid" TEXT NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "name" TEXT NOT NULL,
+    "amount" DOUBLE PRECISION NOT NULL,
+    "description" TEXT,
+    "tag" "public"."ExpenseTag" NOT NULL,
+    "inventoryId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Expense_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -111,6 +153,14 @@ CREATE TABLE "public"."File" (
     "isUsed" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "File_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."_InventoryDepositReceipts" (
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL,
+
+    CONSTRAINT "_InventoryDepositReceipts_AB_pkey" PRIMARY KEY ("A","B")
 );
 
 -- CreateIndex
@@ -144,10 +194,22 @@ CREATE UNIQUE INDEX "ProductUnit_uuid_key" ON "public"."ProductUnit"("uuid");
 CREATE UNIQUE INDEX "Inventory_uuid_key" ON "public"."Inventory"("uuid");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Report_uuid_key" ON "public"."Report"("uuid");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Report_depositReceiptId_key" ON "public"."Report"("depositReceiptId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Expense_uuid_key" ON "public"."Expense"("uuid");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "File_uuid_key" ON "public"."File"("uuid");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "File_path_key" ON "public"."File"("path");
+
+-- CreateIndex
+CREATE INDEX "_InventoryDepositReceipts_B_index" ON "public"."_InventoryDepositReceipts"("B");
 
 -- AddForeignKey
 ALTER TABLE "public"."User" ADD CONSTRAINT "User_inventoryId_fkey" FOREIGN KEY ("inventoryId") REFERENCES "public"."Inventory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -159,4 +221,25 @@ ALTER TABLE "public"."User" ADD CONSTRAINT "User_profileImageId_fkey" FOREIGN KE
 ALTER TABLE "public"."Product" ADD CONSTRAINT "Product_inventoryId_fkey" FOREIGN KEY ("inventoryId") REFERENCES "public"."Inventory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."ProductUnit" ADD CONSTRAINT "ProductUnit_productId_fkey" FOREIGN KEY ("productId") REFERENCES "public"."Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."ProductUnit" ADD CONSTRAINT "ProductUnit_productId_fkey" FOREIGN KEY ("productId") REFERENCES "public"."Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Report" ADD CONSTRAINT "Report_inventoryId_fkey" FOREIGN KEY ("inventoryId") REFERENCES "public"."Inventory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Report" ADD CONSTRAINT "Report_workerId_fkey" FOREIGN KEY ("workerId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Report" ADD CONSTRAINT "Report_depositReceiptId_fkey" FOREIGN KEY ("depositReceiptId") REFERENCES "public"."File"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Expense" ADD CONSTRAINT "Expense_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Expense" ADD CONSTRAINT "Expense_inventoryId_fkey" FOREIGN KEY ("inventoryId") REFERENCES "public"."Inventory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."_InventoryDepositReceipts" ADD CONSTRAINT "_InventoryDepositReceipts_A_fkey" FOREIGN KEY ("A") REFERENCES "public"."File"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."_InventoryDepositReceipts" ADD CONSTRAINT "_InventoryDepositReceipts_B_fkey" FOREIGN KEY ("B") REFERENCES "public"."Inventory"("id") ON DELETE CASCADE ON UPDATE CASCADE;

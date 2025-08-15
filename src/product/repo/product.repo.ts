@@ -26,7 +26,7 @@ export class ProductRepo {
                 productUnits: {
                     select: {
                         id: true,
-                        value: true,
+                        batch : true,
                         quantity: true,
                     },
                 },
@@ -52,7 +52,7 @@ export class ProductRepo {
                 productUnits: {
                     select: {
                         id: true,
-                        value: true,
+                        batch: true,
                         quantity: true,
                     },
                 },
@@ -84,7 +84,7 @@ export class ProductRepo {
                 productUnits: {
                     select: {
                         id: true,
-                        value: true,
+                        batch: true,
                         quantity: true,
                     },
                 },
@@ -111,7 +111,7 @@ export class ProductRepo {
                 productUnits: {
                     select: {
                         id: true,
-                        value: true,
+                        batch: true,
                         quantity: true,
                     },
                 },

@@ -105,7 +105,7 @@ export class ProductService {
                     select: { id: true, name: true },
                 },
                 productUnits: {
-                    select: { id: true, value: true, quantity: true },
+                    select: { id: true, batch: true, quantity: true },
                 },
             },
         });
