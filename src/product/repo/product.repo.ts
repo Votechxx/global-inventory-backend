@@ -118,4 +118,23 @@ export class ProductRepo {
             },
         });
     }
+
+    async getAllInventoryProducts(inventoryId: number) {
+        const products = await this.prismaService.product.findMany({
+            where: { inventoryId },
+            select: {
+                id: true,
+                name: true,
+                price: true,
+                productUnits: {
+                    select: {
+                        id: true,
+                        value: true,
+                        quantity: true,
+                    },
+                },
+            },
+        });
+        return products;
+    }
 }

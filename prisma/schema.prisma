@@ -56,6 +56,7 @@ model User {
 
   ProfileImage File?     @relation(fields: [profileImageId], references: [id], onDelete: SetNull)
   Expense      Expense[]
+  Report       Report[]
 }
 
 model Product {
@@ -96,12 +97,44 @@ model Inventory {
   description String?
   location    String?
 
+  currentBalance Float @default(0) // Current balance of the inventory
+  totalBalance   Float @default(0) // Total balance of the inventory
+  cashOnHand     Float @default(0) // Cash on hand in the inventory
+  bankDeposit    Float @default(0) // Bank deposit amount
+  totalExpenses  Float @default(0) // Total expenses in the inventory
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   workers User[]
   Product Product[]
   Expense Expense[]
+  Report  Report[]
+}
+
+model Report {
+  id   Int    @id @default(autoincrement())
+  uuid String @unique @default(uuid())
+
+  inventoryId Int
+  inventory   Inventory @relation(fields: [inventoryId], references: [id])
+
+  workerId Int
+  worker   User @relation(fields: [workerId], references: [id])
+
+  stock           Json
+  cashOnHand      Float
+  bankDeposit     Float
+  status          StatusReportEnum @default(PENDING)
+  
+  isRequestedChanges Boolean @default(false)
+  reason String?
+
+  depositReceiptFileId Int?  @unique
+  depositReceiptFile   File? @relation(fields: [depositReceiptFileId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Expense {
@@ -140,7 +173,15 @@ model File {
 
   isUsed Boolean @default(false)
 
-  User User? @relation
+  User   User?   @relation
+  Report Report?
+}
+
+enum StatusReportEnum {
+  PENDING
+  PENDING_DEPOSIT
+  APPROVED
+  REJECTED
 }
 
 enum ExpenseTag {
@@ -177,12 +218,6 @@ enum UserCreationMethodEnum {
   GOOGLE
   APPLE
   MANUAL
-}
-
-enum StatusDailyReportEnum {
-  PENDING
-  APPROVED
-  REJECTED
 }
 
 enum TransactionTypeEnum {

@@ -13,6 +13,7 @@ import { InventoryModule } from './inventory/inventory.module';
 import { ProductModule } from './product/product.module';
 import { ProductController } from './product/product.controller';
 import { ExpenseModule } from './expense/expense.module';
+import { ReportModule } from './report/report.module';
 
 @Module({
     imports: [
@@ -31,6 +32,7 @@ import { ExpenseModule } from './expense/expense.module';
         InventoryModule,
         ProductModule,
         ExpenseModule,
+        ReportModule,
     ],
     controllers: [ProductController],
     providers: [UserRepo],

@@ -56,4 +56,10 @@ export class InventoryRepo {
     async getInventoryCount(where: Prisma.InventoryWhereInput) {
         return this.prismaService.inventory.count({ where });
     }
+
+    async getInventoryByWorkerId(workerId: number) {
+        return this.prismaService.inventory.findMany({
+            where: { workers: { some: { id: workerId } } },
+        });
+    }
 }

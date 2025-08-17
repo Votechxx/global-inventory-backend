@@ -5,8 +5,8 @@ import { InventoryRepo } from './repo/inventory.repo';
 import { InventoryHelper } from './helpers/inventory.helper';
 
 @Module({
-  controllers: [InventoryController],
-  providers: [InventoryService, InventoryRepo, InventoryHelper],
-  exports: [InventoryService, InventoryRepo],
+    controllers: [InventoryController],
+    providers: [InventoryService, InventoryRepo, InventoryHelper],
+    exports: [InventoryService, InventoryRepo],
 })
 export class InventoryModule {}
