@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../node_modules/.prisma/client"
@@ -15,32 +9,26 @@ datasource db {
 }
 
 model User {
-  id   Int    @id @default(autoincrement())
-  uuid String @unique @default(uuid())
-
-  firstName   String
-  lastName    String
-  email       String  @unique
-  shopId      Int?
-  phoneNumber String? @unique
-  username    String? @unique
-  parentPhone String?
-
-  password       String?
-  role           RoleEnum @default(USER)
-  profileImageId Int?     @unique
-
-  inventoryId Int?
-  inventory   Inventory? @relation(fields: [inventoryId], references: [id])
-
-  dob         DateTime?
-  gender      GenderEnum?
-  nationality String?
-  address     String?
-  zipCode     String?
-  city        String?
-  country     String?
-
+  id                    Int                    @id @default(autoincrement())
+  uuid                  String                 @unique @default(uuid())
+  firstName             String
+  lastName              String
+  email                 String                 @unique
+  shopId                Int?
+  phoneNumber           String?                @unique
+  username              String?                @unique
+  parentPhone           String?
+  password              String?
+  role                  RoleEnum               @default(USER)
+  profileImageId        Int?                   @unique
+  inventoryId           Int?
+  dob                   DateTime?
+  gender                GenderEnum?
+  nationality           String?
+  address               String?
+  zipCode               String?
+  city                  String?
+  country               String?
   dateToExpireOtp       DateTime?
   qrCode                String                 @unique @default(uuid())
   isDeleted             Boolean                @default(false)
@@ -50,77 +38,97 @@ model User {
   appleId               String?
   userCreationMethod    UserCreationMethodEnum @default(EMAIL)
   verificationEmailedAt DateTime?              @default(now())
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  ProfileImage File?     @relation(fields: [profileImageId], references: [id], onDelete: SetNull)
-  Expense      Expense[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  Expense               Expense[]
+  Shipment              Shipment[]
+  inventory             Inventory?             @relation(fields: [inventoryId], references: [id])
+  ProfileImage          File?                  @relation(fields: [profileImageId], references: [id])
 }
 
 model Product {
-  id   Int    @id @default(autoincrement())
-  uuid String @unique @default(uuid())
-
-  name  String @unique
-  price Float
-
-  inventoryId Int
-  inventory   Inventory? @relation(fields: [inventoryId], references: [id])
-
+  id           Int           @id @default(autoincrement())
+  uuid         String        @unique @default(uuid())
+  name         String        @unique
+  price        Float
+  inventoryId  Int
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  inventory    Inventory     @relation(fields: [inventoryId], references: [id])
   productUnits ProductUnit[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model ProductUnit {
-  id   Int    @id @default(autoincrement())
-  uuid String @unique @default(uuid())
-
-  value    Int
-  quantity Int @default(0)
-
+  id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(uuid())
+  quantity  Int      @default(0)
   productId Int
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  value     Int
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Inventory {
-  id   Int    @id @default(autoincrement())
-  uuid String @unique @default(uuid())
-
+  id          Int        @id @default(autoincrement())
+  uuid        String     @unique @default(uuid())
   name        String
   description String?
   location    String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  workers User[]
-  Product Product[]
-  Expense Expense[]
+  currentBalance Float   @default(0)
+  totalBalance Float    @default(0)
+  deposit       Float      @default(0)
+  expenses      Float      @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  Expense     Expense[]
+  Product     Product[]
+  Shipment    Shipment[]
+  workers     User[]
 }
 
 model Expense {
-  id   Int    @id @default(autoincrement())
-  uuid String @unique @default(uuid())
-
-  userId Int
-
+  id          Int        @id @default(autoincrement())
+  uuid        String     @unique @default(uuid())
+  userId      Int
   name        String
   amount      Float
   description String?
   tag         ExpenseTag
   inventoryId Int
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  inventory   Inventory  @relation(fields: [inventoryId], references: [id])
+  user        User       @relation(fields: [userId], references: [id])
+}
 
-  user      User      @relation(fields: [userId], references: [id])
-  inventory Inventory @relation(fields: [inventoryId], references: [id])
+model Shipment {
+  id                Int              @id @default(autoincrement())
+  uuid              String           @unique @default(uuid())
+  title             String           @db.VarChar(255)
+  numberOfTrucks    Int              @default(1)
+  status            StatusShipmentEnum   @default(PENDING)
+  inventoryId       Int
+  isWaitingForChanges Boolean        @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  userId            Int?
+  user              User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  inventory         Inventory        @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  shipmentExpenses  ShipmentExpense[] 
+}
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model ShipmentExpense {
+  id          Int      @id @default(autoincrement())
+  uuid        String   @unique @default(uuid())
+  shipmentId  Int
+  name        String
+  amount      Float
+  description String?
+  tag         ExpenseTag?
+  shipment    Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model File {
@@ -168,8 +176,8 @@ enum GenderEnum {
 }
 
 enum RoleEnum {
-  ADMIN // admin
-  USER // worker
+  ADMIN
+  USER
 }
 
 enum UserCreationMethodEnum {
@@ -183,6 +191,12 @@ enum StatusDailyReportEnum {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum StatusShipmentEnum {
+  PENDING
+  PENDING_REVIEW
+  ACCEPTED
 }
 
 enum TransactionTypeEnum {
