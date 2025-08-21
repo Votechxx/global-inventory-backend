@@ -75,6 +75,10 @@ model Inventory {
   name        String
   description String?
   location    String?
+  currentBalance Float   @default(0)
+  totalBalance Float    @default(0)
+  deposit       Float      @default(0)
+  expenses      Float      @default(0)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   Expense     Expense[]
@@ -96,39 +100,55 @@ model Expense {
   updatedAt   DateTime   @updatedAt
   inventory   Inventory  @relation(fields: [inventoryId], references: [id])
   user        User       @relation(fields: [userId], references: [id])
-  Shipment    Shipment[]
 }
 
 model Shipment {
-  id             Int                @id @default(autoincrement())
-  uuid           String             @unique @default(uuid())
-  title          String
-  statys         StatusShipmentEnum @default(PENDING)
-  numberOfTrucks Int                @default(1)
-  inventoryId    Int
-  expenseId      Int?
-  userId         Int?
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
-  expense        Expense?           @relation(fields: [expenseId], references: [id])
-  inventory      Inventory          @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
-  user           User?              @relation(fields: [userId], references: [id])
+  id                Int              @id @default(autoincrement())
+  uuid              String           @unique @default(uuid())
+  title             String           @db.VarChar(255)
+  numberOfTrucks    Int              @default(1)
+  status            StatusShipmentEnum   @default(PENDING)
+  inventoryId       Int
+  isWaitingForChanges Boolean        @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  userId            Int?
+  user              User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  inventory         Inventory        @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  shipmentExpenses  ShipmentExpense[] 
+}
+
+model ShipmentExpense {
+  id          Int      @id @default(autoincrement())
+  uuid        String   @unique @default(uuid())
+  shipmentId  Int
+  name        String
+  amount      Float
+  description String?
+  tag         ExpenseTag?
+  shipment    Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model File {
-  id        Int            @id @default(autoincrement())
-  uuid      String         @unique @default(uuid())
-  name      String
-  path      String         @unique
-  url       String
-  source    FileSourceEnum @default(LOCAL)
-  type      FileTypeEnum
-  size      Int
-  category  String
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  isUsed    Boolean        @default(false)
-  User      User?
+  id   Int    @id @default(autoincrement())
+  uuid String @unique @default(uuid())
+
+  name     String
+  path     String         @unique
+  url      String
+  source   FileSourceEnum @default(LOCAL)
+  type     FileTypeEnum
+  size     Int
+  category String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  isUsed Boolean @default(false)
+
+  User User? @relation
 }
 
 enum ExpenseTag {
@@ -175,9 +195,8 @@ enum StatusDailyReportEnum {
 
 enum StatusShipmentEnum {
   PENDING
-  IN_TRANSIT
-  DELIVERED
-  CANCELLED
+  PENDING_REVIEW
+  ACCEPTED
 }
 
 enum TransactionTypeEnum {

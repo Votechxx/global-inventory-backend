@@ -50,22 +50,41 @@ export class CreateShipmentDto {
   @IsInt()
   numberOfTrucks: number;
 
-  @ApiProperty({
-    description: 'Expense ID (optional, for single expense)',
-    required: false,
-  })
-  @IsOptional()
-  @IsInt()
-  expenseId?: number;
-
-  @ApiProperty({
-    description: 'List of expenses (for admin only)',
-    required: false,
-    type: [ShipmentExpenseDto],
-  })
+  @ApiProperty({ description: 'List of shipment expenses', required: false, type: [ShipmentExpenseDto] })
   @IsOptional()
   @IsArray()
-  expenses?: ShipmentExpenseDto[];
+  shipmentExpenses?: ShipmentExpenseDto[];
+}
+
+export class UpdateShipmentDto {
+  @ApiProperty({ description: 'The shipment title', required: false })
+  @IsOptional()
+  @IsString()
+  title?: string;
+
+  @ApiProperty({ description: 'Number of trucks', required: false })
+  @IsOptional()
+  @IsInt()
+  numberOfTrucks?: number;
+
+  @ApiProperty({ description: 'Shipment status', required: false, enum: StatusShipmentEnum })
+  @IsOptional()
+  @IsEnum(StatusShipmentEnum)
+  status?: StatusShipmentEnum;
+
+  @ApiProperty({ description: 'Waiting for changes flag', required: false })
+  @IsOptional()
+  isWaitingForChanges?: boolean;
+
+  @ApiProperty({ description: 'List of shipment expenses to add', required: false, type: [ShipmentExpenseDto] })
+  @IsOptional()
+  @IsArray()
+  shipmentExpenses?: ShipmentExpenseDto[];
+
+  @ApiProperty({ description: 'Review message for admin or worker', required: false })
+  @IsOptional()
+  @IsString()
+  reviewMessage?: string;
 }
 
 export class ShipmentResponseDto {
@@ -94,17 +113,16 @@ export class ShipmentResponseDto {
   @IsEnum(StatusShipmentEnum)
   status: StatusShipmentEnum;
 
+  @ApiProperty({ description: 'Waiting for changes flag' })
+  @IsNotEmpty()
+  isWaitingForChanges: boolean;
+
   @ApiProperty({ description: 'Inventory ID' })
   @IsNotEmpty()
   @IsInt()
   inventoryId: number;
 
-  @ApiProperty({ description: 'Expense ID (if applicable)' })
-  @IsOptional()
-  @IsInt()
-  expenseId?: number;
-
-  @ApiProperty({ description: 'Total price of expenses' })
+  @ApiProperty({ description: 'Total price of shipment expenses' })
   @IsNotEmpty()
   @IsNumber()
   totalPrice: number;
@@ -114,11 +132,14 @@ export class ShipmentResponseDto {
 
   @ApiProperty({ description: 'Update date' })
   updatedAt: Date;
+
+  @ApiProperty({ description: 'List of shipment expenses', type: [ShipmentExpenseDto] })
+  shipmentExpenses: ShipmentExpenseDto[];
 }
 
 export class ShipmentQueryDto extends PartialType(
   IntersectionType(
-    OmitType(ShipmentResponseDto, ['createdAt', 'updatedAt', 'totalPrice'] as const),
+    OmitType(ShipmentResponseDto, ['createdAt', 'updatedAt', 'totalPrice', 'shipmentExpenses'] as const),
     PaginationDto,
   ),
 ) {}

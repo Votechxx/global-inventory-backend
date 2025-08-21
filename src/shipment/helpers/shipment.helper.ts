@@ -1,14 +1,11 @@
-import { Injectable } from '@nestjs/common';
 import { ShipmentResponseDto } from '../dto/shipment.dto';
-import { Expense } from '@prisma/client';
+import { Shipment } from '@prisma/client';
 
-@Injectable()
 export class ShipmentHelper {
-  calculateTotalPrice(expenses: Expense[]): number {
-    return expenses.reduce((sum, expense) => sum + expense.amount, 0);
-  }
-
-  mapToResponse(shipment: any, totalPrice: number): ShipmentResponseDto {
+  static mapToResponse(
+    shipment: Shipment & { shipmentExpenses?: { name: string; amount: number; description?: string; tag?: string }[] },
+    totalPrice: number
+  ): ShipmentResponseDto {
     return {
       id: shipment.id,
       uuid: shipment.uuid,
@@ -16,19 +13,16 @@ export class ShipmentHelper {
       numberOfTrucks: shipment.numberOfTrucks,
       status: shipment.status,
       inventoryId: shipment.inventoryId,
-      totalPrice,
+      isWaitingForChanges: shipment.isWaitingForChanges,
+      totalPrice: totalPrice,
       createdAt: shipment.createdAt,
       updatedAt: shipment.updatedAt,
+      shipmentExpenses: (shipment.shipmentExpenses ?? []).map(expense => ({
+        name: expense.name,
+        amount: expense.amount,
+        description: expense.description,
+        tag: expense.tag,
+      })),
     };
-  }
-
-  validateShipmentData(createShipmentDto: any): boolean {
-    if (!createShipmentDto.title || !createShipmentDto.numberOfTrucks || !createShipmentDto.inventoryId) {
-      return false;
-    }
-    if (createShipmentDto.expenses) {
-      return createShipmentDto.expenses.every(exp => exp.name && exp.amount !== undefined);
-    }
-    return true;
   }
 }

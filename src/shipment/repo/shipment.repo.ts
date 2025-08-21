@@ -9,7 +9,7 @@ export class ShipmentRepo {
   async getShipmentById(id: number) {
     const shipment = await this.prismaService.shipment.findUnique({
       where: { id },
-      include: { expense: true, user: true, inventory: true },
+      include: { user: true, inventory: true, shipmentExpenses: true },
     });
     if (!shipment) throw new NotFoundException('Shipment not found');
     return shipment;
@@ -18,7 +18,15 @@ export class ShipmentRepo {
   async createShipment(data: Prisma.ShipmentCreateInput) {
     return this.prismaService.shipment.create({
       data,
-      include: { expense: true, user: true, inventory: true },
+      include: { user: true, inventory: true, shipmentExpenses: true },
+    });
+  }
+
+  async updateShipment(id: number, data: Prisma.ShipmentUpdateInput) {
+    return this.prismaService.shipment.update({
+      where: { id },
+      data,
+      include: { user: true, inventory: true, shipmentExpenses: true },
     });
   }
 }
