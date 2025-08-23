@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     Injectable,
     NotFoundException,
     UnauthorizedException,
@@ -29,10 +30,6 @@ export class ShipmentService {
         createShipmentDto: CreateShipmentDto,
         user: User,
     ): Promise<ShipmentResponseDto> {
-        if (user.role !== 'ADMIN') {
-            throw new UnauthorizedException('Only admins can create shipments');
-        }
-
         const inventory = await this.prismaService.inventory.findUnique({
             where: { id: createShipmentDto.inventoryId },
         });
@@ -43,7 +40,7 @@ export class ShipmentService {
                 createShipmentDto.inventoryId,
             );
         if (existingShipment) {
-            throw new UnauthorizedException(
+            throw new BadRequestException(
                 'There is already an active shipment for this inventory',
             );
         }
@@ -100,18 +97,11 @@ export class ShipmentService {
     async updateShipment(
         id: number,
         updateShipmentDto: UpdateShipmentDto,
-        user: User,
     ): Promise<ShipmentResponseDto> {
         const shipment = await this.shipmentRepo.getShipmentById(id);
         if (!shipment) throw new NotFoundException('Shipment not found');
 
         const updateData: any = {};
-
-        if (user.role !== 'ADMIN') {
-            throw new UnauthorizedException(
-                'Only admins can update shipment status',
-            );
-        }
 
         updateData.title = updateShipmentDto.title;
         updateData.numberOfTrucks = updateShipmentDto.numberOfTrucks;
