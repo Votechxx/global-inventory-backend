@@ -52,13 +52,8 @@ export class ShipmentController {
     async updateShipment(
         @Param('id') id: number,
         @Body() updateShipmentDto: UpdateShipmentDto,
-        @GetUser() user: User,
     ) {
-        return this.shipmentService.updateShipment(
-            +id,
-            updateShipmentDto,
-            user,
-        );
+        return this.shipmentService.updateShipment(+id, updateShipmentDto);
     }
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
