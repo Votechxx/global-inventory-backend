@@ -45,20 +45,37 @@ export class ShipmentExpenseDto {
     tag?: ExpenseTag;
 }
 
+export class ShipmentProductDto {
+    @ApiProperty({ description: 'Product Unit ID associated with the shipment', required: true })
+    @IsNotEmpty()
+    @IsInt()
+    @Type(() => Number)
+    productUnitId: number;
+
+    @ApiProperty({ description: 'Quantity in pieces', required: true })
+    @IsNotEmpty()
+    @IsInt()
+    @Type(() => Number)
+    quantity: number;
+
+    @ApiProperty({ description: 'Pieces per pallet', required: true })
+    @IsNotEmpty()
+    @IsInt()
+    @Type(() => Number)
+    piecesPerPallet: number;
+
+    @ApiProperty({ description: 'Unit price per pallet', required: true })
+    @IsNotEmpty()
+    @IsNumber()
+    @Type(() => Number)
+    unitPrice: number;
+}
+
 export class CreateShipmentDto {
     @ApiProperty({ description: 'The shipment title', required: true })
     @IsNotEmpty()
     @IsString()
     title: string;
-
-    @ApiProperty({
-        description: 'List of shipment expenses',
-        required: false,
-        type: [ShipmentExpenseDto],
-    })
-    @IsOptional()
-    @IsArray()
-    shipmentExpenses?: ShipmentExpenseDto[];
 
     @ApiProperty({
         description: 'Inventory ID associated with the shipment',
@@ -68,6 +85,24 @@ export class CreateShipmentDto {
     @IsInt()
     @Type(() => Number)
     inventoryId: number;
+
+    @ApiProperty({
+        description: 'List of shipment products',
+        required: true,
+        type: [ShipmentProductDto],
+    })
+    @IsNotEmpty()
+    @IsArray()
+    shipmentProducts: ShipmentProductDto[];
+
+    @ApiProperty({
+        description: 'List of shipment expenses',
+        required: false,
+        type: [ShipmentExpenseDto],
+    })
+    @IsOptional()
+    @IsArray()
+    shipmentExpenses?: ShipmentExpenseDto[];
 }
 
 export class UpdateShipmentDto {
@@ -79,7 +114,17 @@ export class UpdateShipmentDto {
     @ApiProperty({ description: 'Number of trucks', required: false })
     @IsOptional()
     @IsInt()
+    @Type(() => Number)
     numberOfTrucks?: number;
+
+    @ApiProperty({
+        description: 'List of shipment products to update',
+        required: false,
+        type: [ShipmentProductDto],
+    })
+    @IsOptional()
+    @IsArray()
+    shipmentProducts?: ShipmentProductDto[];
 
     @ApiProperty({
         description: 'List of shipment expenses to add',
@@ -89,14 +134,6 @@ export class UpdateShipmentDto {
     @IsOptional()
     @IsArray()
     shipmentExpenses?: ShipmentExpenseDto[];
-
-    @ApiProperty({
-        description: 'Review message for admin or worker',
-        required: false,
-    })
-    @IsOptional()
-    @IsString()
-    reviewMessage?: string;
 }
 
 export class ShipmentResponseDto {
@@ -139,6 +176,14 @@ export class ShipmentResponseDto {
     @IsNumber()
     totalPrice: number;
 
+    @ApiProperty({
+        description: 'List of shipment products',
+        type: [ShipmentProductDto],
+    })
+    @IsOptional()
+    @IsArray()
+    shipmentProducts?: ShipmentProductDto[];
+
     @ApiProperty({ description: 'Creation date' })
     createdAt: Date;
 
@@ -159,6 +204,7 @@ export class ShipmentQueryDto extends PartialType(
             'updatedAt',
             'totalPrice',
             'shipmentExpenses',
+            'shipmentProducts',
         ] as const),
         PaginationDto,
     ),

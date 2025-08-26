@@ -1,37 +1,31 @@
+import { Shipment, ShipmentExpense, ShipmentProduct } from '@prisma/client';
 import { ShipmentResponseDto } from '../dto/shipment.dto';
-import { ExpenseTag, Shipment } from '@prisma/client';
 
 export class ShipmentHelper {
     static mapToResponse(
-        shipment: Shipment & {
-            shipmentExpenses?: {
-                name: string;
-                amount: number;
-                description?: string;
-                tag?: ExpenseTag;
-            }[];
-        },
+        shipment: Shipment,
         totalPrice: number,
+        shipmentProducts: ShipmentProduct[],
+        shipmentExpenses: ShipmentExpense[] = []
     ): ShipmentResponseDto {
         return {
             id: shipment.id,
             uuid: shipment.uuid,
             title: shipment.title,
-            numberOfTrucks: shipment.numberOfTrucks,
+            numberOfTrucks: shipment.numberOfTrucks || 0,
             status: shipment.status,
-            inventoryId: shipment.inventoryId,
             isWaitingForChanges: shipment.isWaitingForChanges,
+            inventoryId: shipment.inventoryId,
             totalPrice: totalPrice,
+            shipmentProducts: shipmentProducts.map(p => ({
+                productUnitId: p.productUnitId,
+                quantity: p.quantity,
+                piecesPerPallet: p.piecesPerPallet,
+                unitPrice: p.unitPrice,
+            })),
             createdAt: shipment.createdAt,
             updatedAt: shipment.updatedAt,
-            shipmentExpenses: (shipment.shipmentExpenses ?? []).map(
-                (expense) => ({
-                    name: expense.name,
-                    amount: expense.amount,
-                    description: expense.description,
-                    tag: expense.tag,
-                }),
-            ),
+            shipmentExpenses: shipmentExpenses,
         };
     }
 }

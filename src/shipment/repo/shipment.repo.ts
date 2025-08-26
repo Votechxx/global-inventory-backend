@@ -9,19 +9,16 @@ export class ShipmentRepo {
     async getShipmentById(id: number) {
         const shipment = await this.prismaService.shipment.findUnique({
             where: { id },
-            include: { user: true, inventory: true, shipmentExpenses: true },
+            include: { user: true, inventory: true, shipmentExpenses: true, shipmentProducts: true },
         });
         if (!shipment) throw new NotFoundException('Shipment not found');
         return shipment;
     }
 
-    async createShipment(
-        data: Prisma.ShipmentCreateInput,
-        prisma: Prisma.TransactionClient = this.prismaService,
-    ) {
+    async createShipment(data: Prisma.ShipmentCreateInput, prisma: Prisma.TransactionClient = this.prismaService) {
         return prisma.shipment.create({
             data,
-            include: { user: true, inventory: true, shipmentExpenses: true },
+            include: { user: true, inventory: true, shipmentExpenses: true, shipmentProducts: true },
         });
     }
 
@@ -30,13 +27,10 @@ export class ShipmentRepo {
             where: {
                 inventoryId,
                 status: {
-                    in: [
-                        StatusShipmentEnum.PENDING,
-                        StatusShipmentEnum.PENDING_REVIEW,
-                    ],
+                    in: [StatusShipmentEnum.PENDING, StatusShipmentEnum.PENDING_REVIEW],
                 },
             },
-            include: { user: true, inventory: true, shipmentExpenses: true },
+            include: { user: true, inventory: true, shipmentExpenses: true, shipmentProducts: true },
         });
         return shipment;
     }
@@ -45,7 +39,7 @@ export class ShipmentRepo {
         return this.prismaService.shipment.update({
             where: { id },
             data,
-            include: { user: true, inventory: true, shipmentExpenses: true },
+            include: { user: true, inventory: true, shipmentExpenses: true, shipmentProducts: true },
         });
     }
 }

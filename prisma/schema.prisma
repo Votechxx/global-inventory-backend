@@ -67,6 +67,8 @@ model ProductUnit {
   updatedAt DateTime @updatedAt
   value     Int
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  ShipmentProduct ShipmentProduct[]
 }
 
 model Inventory {
@@ -116,6 +118,7 @@ model Shipment {
   user              User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
   inventory         Inventory        @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
   shipmentExpenses  ShipmentExpense[] 
+  shipmentProducts ShipmentProduct[]
 }
 
 model ShipmentExpense {
@@ -129,6 +132,24 @@ model ShipmentExpense {
   shipment    Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model ShipmentProduct {
+  id              Int           @id @default(autoincrement())
+  shipmentId      Int
+  productUnitId   Int
+  quantity        Int           @default(0) // العدد بالقطع
+  piecesPerPallet Int           @default(1) // كام قطعه في البالتة
+  pallets         Float         @default(0) // عدد البالتات (quantity / piecesPerPallet)
+  unitPrice       Float         @default(0) // سعر الوحدة
+  totalPrice      Float         @default(0) // السعر الإجمالي (pallets * unitPrice)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  shipment        Shipment      @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  productUnit     ProductUnit   @relation(fields: [productUnitId], references: [id], onDelete: Cascade)
+ 
+  
+  
 }
 
 model File {
