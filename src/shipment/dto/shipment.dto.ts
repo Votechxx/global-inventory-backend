@@ -5,7 +5,6 @@ import {
     IsOptional,
     IsEnum,
     IsInt,
-    IsUUID,
     IsArray,
 } from 'class-validator';
 import {
@@ -78,15 +77,6 @@ export class CreateShipmentDto {
     title: string;
 
     @ApiProperty({
-        description: 'Inventory ID associated with the shipment',
-        required: true,
-    })
-    @IsNotEmpty()
-    @IsInt()
-    @Type(() => Number)
-    inventoryId: number;
-
-    @ApiProperty({
         description: 'List of shipment products',
         required: true,
         type: [ShipmentProductDto],
@@ -144,7 +134,7 @@ export class ShipmentResponseDto {
 
     @ApiProperty({ description: 'Shipment UUID' })
     @IsNotEmpty()
-    @IsUUID()
+    @IsString()
     uuid: string;
 
     @ApiProperty({ description: 'The shipment title' })

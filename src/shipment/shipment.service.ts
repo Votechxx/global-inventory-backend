@@ -16,11 +16,11 @@ export class ShipmentService {
         private readonly inventoryService: InventoryService,
     ) {}
 
-    async createShipment(createShipmentDto: CreateShipmentDto, user: User): Promise<ShipmentResponseDto> {
-        const inventory = await this.prismaService.inventory.findUnique({ where: { id: createShipmentDto.inventoryId } });
+    async createShipment(inventoryId: number, createShipmentDto: CreateShipmentDto, user: User): Promise<ShipmentResponseDto> {
+        const inventory = await this.prismaService.inventory.findUnique({ where: { id: inventoryId } });
         if (!inventory) throw new NotFoundException('Inventory not found');
 
-        const existingShipment = await this.shipmentRepo.getActiveShipmentOfInventory(createShipmentDto.inventoryId);
+        const existingShipment = await this.shipmentRepo.getActiveShipmentOfInventory(inventoryId);
         if (existingShipment) {
             throw new BadRequestException('There is already an active shipment for this inventory');
         }
@@ -29,7 +29,7 @@ export class ShipmentService {
             title: createShipmentDto.title,
             status: StatusShipmentEnum.PENDING,
             isWaitingForChanges: false,
-            inventory: { connect: { id: createShipmentDto.inventoryId } },
+            inventory: { connect: { id: inventoryId } },
             user: { connect: { id: user.id } },
         };
 
@@ -73,9 +73,10 @@ export class ShipmentService {
         return ShipmentHelper.mapToResponse(shipment, totalPrice, shipmentProducts);
     }
 
-    async updateShipment(id: number, updateShipmentDto: UpdateShipmentDto): Promise<ShipmentResponseDto> {
+    async updateShipment(id: number, inventoryId: number, updateShipmentDto: UpdateShipmentDto): Promise<ShipmentResponseDto> {
         const shipment = await this.shipmentRepo.getShipmentById(id);
         if (!shipment) throw new NotFoundException('Shipment not found');
+        if (shipment.inventoryId !== inventoryId) throw new BadRequestException('This shipment does not belong to the specified inventory');
 
         const updateData: Prisma.ShipmentUpdateInput = {};
 
@@ -124,9 +125,10 @@ export class ShipmentService {
         return ShipmentHelper.mapToResponse(updatedShipment, totalPrice, shipmentProducts);
     }
 
-    async sendForReview(id: number, reviewMessage: string, user: User): Promise<ShipmentResponseDto> {
+    async sendForReview(id: number, inventoryId: number, reviewMessage: string, user: User): Promise<ShipmentResponseDto> {
         const shipment = await this.shipmentRepo.getShipmentById(id);
         if (!shipment) throw new NotFoundException('Shipment not found');
+        if (shipment.inventoryId !== inventoryId) throw new BadRequestException('This shipment does not belong to the specified inventory');
         if (shipment.status !== StatusShipmentEnum.PENDING) throw new BadRequestException('Shipment must be in PENDING status');
         if (user.role !== 'ADMIN') throw new UnauthorizedException('Only admins can send for review');
 
@@ -142,9 +144,10 @@ export class ShipmentService {
         return ShipmentHelper.mapToResponse(updatedShipment, totalPrice, shipmentProducts);
     }
 
-    async acceptShipment(id: number, user: User): Promise<ShipmentResponseDto> {
+    async acceptShipment(id: number, inventoryId: number, user: User): Promise<ShipmentResponseDto> {
         const shipment = await this.shipmentRepo.getShipmentById(id);
         if (!shipment) throw new NotFoundException('Shipment not found');
+        if (shipment.inventoryId !== inventoryId) throw new BadRequestException('This shipment does not belong to the specified inventory');
         if (shipment.status !== StatusShipmentEnum.PENDING_REVIEW) throw new BadRequestException('Shipment must be in PENDING_REVIEW status');
         if (user.role !== 'ADMIN') throw new UnauthorizedException('Only admins can accept shipment');
 
@@ -159,14 +162,20 @@ export class ShipmentService {
         return ShipmentHelper.mapToResponse(updatedShipment, totalPrice, shipmentProducts);
     }
 
-    async getShipment(id: number): Promise<ShipmentResponseDto> {
-        const shipment = await this.shipmentRepo.getShipmentById(id);
-        if (!shipment) throw new NotFoundException('Shipment not found');
-        const totalPrice = await this.prismaService.shipmentExpense
-            .aggregate({ where: { shipmentId: id }, _sum: { amount: true } })
-            .then(result => result._sum.amount || 0);
-        const shipmentProducts = await this.prismaService.shipmentProduct.findMany({ where: { shipmentId: id } });
-        return ShipmentHelper.mapToResponse(shipment, totalPrice, shipmentProducts);
+    async getShipment(inventoryId: number): Promise<ShipmentResponseDto[]> {
+        const shipments = await this.prismaService.shipment.findMany({
+            where: { inventoryId },
+        });
+        if (!shipments.length) throw new NotFoundException('No shipments found for this inventory');
+
+        const response = await Promise.all(shipments.map(async (shipment) => {
+            const totalPrice = await this.prismaService.shipmentExpense
+                .aggregate({ where: { shipmentId: shipment.id }, _sum: { amount: true } })
+                .then(result => result._sum.amount || 0);
+            const shipmentProducts = await this.prismaService.shipmentProduct.findMany({ where: { shipmentId: shipment.id } });
+            return ShipmentHelper.mapToResponse(shipment, totalPrice, shipmentProducts);
+        }));
+        return response;
     }
 
     async getShipmentsCount(): Promise<number> {
