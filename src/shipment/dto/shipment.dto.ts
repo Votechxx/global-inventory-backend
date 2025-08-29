@@ -10,7 +10,6 @@ import {
 import {
     ApiProperty,
     IntersectionType,
-    OmitType,
     PartialType,
     PickType,
 } from '@nestjs/swagger';
@@ -107,6 +106,7 @@ export class ShipmentResponseDto {
     @ApiProperty({ description: 'Shipment ID' })
     @IsNotEmpty()
     @IsInt()
+    @Type(() => Number)
     id: number;
 
     @ApiProperty({ description: 'Shipment UUID' })
@@ -122,6 +122,7 @@ export class ShipmentResponseDto {
     @ApiProperty({ description: 'Number of trucks' })
     @IsNotEmpty()
     @IsInt()
+    @Type(() => Number)
     numberOfTrucks: number;
 
     @ApiProperty({ description: 'Shipment status' })
@@ -159,11 +160,13 @@ export class ShipmentResponseDto {
     @ApiProperty({ description: 'Inventory ID' })
     @IsNotEmpty()
     @IsInt()
+    @Type(() => Number)
     inventoryId: number;
 
     @ApiProperty({ description: 'Total price of shipment expenses' })
     @IsNotEmpty()
     @IsNumber()
+    @Type(() => Number)
     totalPrice: number;
 
     @ApiProperty({
