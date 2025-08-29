@@ -5,7 +5,6 @@ import {
     IsOptional,
     IsEnum,
     IsInt,
-    IsUUID,
     IsArray,
 } from 'class-validator';
 import {
@@ -13,6 +12,7 @@ import {
     IntersectionType,
     OmitType,
     PartialType,
+    PickType,
 } from '@nestjs/swagger';
 import { ExpenseTag, StatusShipmentEnum } from '@prisma/client';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
@@ -45,6 +45,23 @@ export class ShipmentExpenseDto {
     tag?: ExpenseTag;
 }
 
+export class AddShipmentProductDto {
+    @ApiProperty({
+        description: 'Product Unit ID associated with the shipment',
+        required: true,
+    })
+    @IsNotEmpty()
+    @IsInt()
+    @Type(() => Number)
+    productUnitId: number;
+
+    @ApiProperty({ description: 'Quantity in pieces', required: true })
+    @IsNotEmpty()
+    @IsInt()
+    @Type(() => Number)
+    quantity: number;
+}
+
 export class CreateShipmentDto {
     @ApiProperty({ description: 'The shipment title', required: true })
     @IsNotEmpty()
@@ -61,7 +78,7 @@ export class CreateShipmentDto {
     shipmentExpenses?: ShipmentExpenseDto[];
 
     @ApiProperty({
-        description: 'Inventory ID associated with the shipment',
+        description: 'ID of the inventory the shipment belongs to',
         required: true,
     })
     @IsNotEmpty()
@@ -76,11 +93,6 @@ export class UpdateShipmentDto {
     @IsString()
     title?: string;
 
-    @ApiProperty({ description: 'Number of trucks', required: false })
-    @IsOptional()
-    @IsInt()
-    numberOfTrucks?: number;
-
     @ApiProperty({
         description: 'List of shipment expenses to add',
         required: false,
@@ -89,14 +101,6 @@ export class UpdateShipmentDto {
     @IsOptional()
     @IsArray()
     shipmentExpenses?: ShipmentExpenseDto[];
-
-    @ApiProperty({
-        description: 'Review message for admin or worker',
-        required: false,
-    })
-    @IsOptional()
-    @IsString()
-    reviewMessage?: string;
 }
 
 export class ShipmentResponseDto {
@@ -107,7 +111,7 @@ export class ShipmentResponseDto {
 
     @ApiProperty({ description: 'Shipment UUID' })
     @IsNotEmpty()
-    @IsUUID()
+    @IsString()
     uuid: string;
 
     @ApiProperty({ description: 'The shipment title' })
@@ -125,9 +129,32 @@ export class ShipmentResponseDto {
     @IsEnum(StatusShipmentEnum)
     status: StatusShipmentEnum;
 
-    @ApiProperty({ description: 'Waiting for changes flag' })
+    @ApiProperty({
+        description:
+            'shipment card expenses, this will affect the inventory balance',
+    })
     @IsNotEmpty()
-    isWaitingForChanges: boolean;
+    @IsNumber()
+    @Type(() => Number)
+    shipmentCardExpenses: number | null;
+
+    @ApiProperty({
+        description:
+            'shipment clark installment expenses, this will affect the inventory balance',
+    })
+    @IsNotEmpty()
+    @IsNumber()
+    @Type(() => Number)
+    clarkInstallmentExpenses: number | null;
+
+    @ApiProperty({
+        description:
+            'Other expenses related to the shipment, this will affect the inventory balance',
+    })
+    @IsNotEmpty()
+    @IsNumber()
+    @Type(() => Number)
+    otherExpenses: number | null;
 
     @ApiProperty({ description: 'Inventory ID' })
     @IsNotEmpty()
@@ -138,6 +165,14 @@ export class ShipmentResponseDto {
     @IsNotEmpty()
     @IsNumber()
     totalPrice: number;
+
+    @ApiProperty({
+        description: 'List of shipment products',
+        type: [AddShipmentProductDto],
+    })
+    @IsOptional()
+    @IsArray()
+    shipmentProducts?: AddShipmentProductDto[];
 
     @ApiProperty({ description: 'Creation date' })
     createdAt: Date;
@@ -152,13 +187,33 @@ export class ShipmentResponseDto {
     shipmentExpenses: ShipmentExpenseDto[];
 }
 
+export class SubmitShipmentForReview {
+    @ApiProperty({
+        description: 'List of shipment products',
+        required: true,
+        type: [AddShipmentProductDto],
+    })
+    @IsNotEmpty()
+    @IsArray()
+    addShipmentProducts: AddShipmentProductDto[];
+}
+
+export class RequestShipmentUpdateDto {
+    @ApiProperty({ description: 'Message for the review', required: true })
+    @IsNotEmpty()
+    @IsString()
+    reviewMessage: string;
+}
+
 export class ShipmentQueryDto extends PartialType(
     IntersectionType(
-        OmitType(ShipmentResponseDto, [
-            'createdAt',
-            'updatedAt',
-            'totalPrice',
-            'shipmentExpenses',
+        PickType(ShipmentResponseDto, [
+            'id',
+            'inventoryId',
+            'numberOfTrucks',
+            'status',
+            'title',
+            'uuid',
         ] as const),
         PaginationDto,
     ),

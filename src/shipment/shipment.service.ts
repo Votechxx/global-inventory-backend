@@ -1,44 +1,49 @@
 import {
     BadRequestException,
+    ForbiddenException,
     Injectable,
     NotFoundException,
-    UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/common/modules/prisma/prisma.service';
 import {
     CreateShipmentDto,
+    RequestShipmentUpdateDto,
+    ShipmentQueryDto,
     ShipmentResponseDto,
+    SubmitShipmentForReview,
     UpdateShipmentDto,
 } from './dto/shipment.dto';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, RoleEnum, User } from '@prisma/client';
 import { ShipmentRepo } from './repo/shipment.repo';
 import { ShipmentHelper } from './helpers/shipment.helper';
 import { StatusShipmentEnum, ExpenseTag } from '@prisma/client';
-import { InventoryService } from '../inventory/inventory.service';
-import { startOfWeek, endOfWeek } from 'date-fns';
+import { InventoryRepo } from 'src/inventory/repo/inventory.repo';
+import { ProductUnitRepo } from 'src/product/repo/product-unit.repo';
+import { UserRepo } from 'src/core/user/repo/user.repo';
 
 @Injectable()
 export class ShipmentService {
     constructor(
-        private prismaService: PrismaService,
+        private readonly prismaService: PrismaService,
+        private readonly userRepo: UserRepo,
         private readonly shipmentRepo: ShipmentRepo,
-        private readonly shipmentHelper: ShipmentHelper,
-        private readonly inventoryService: InventoryService,
+        private readonly inventoryRepo: InventoryRepo,
+        private readonly productUnitRepo: ProductUnitRepo,
     ) {}
 
+    // DONE
     async createShipment(
         createShipmentDto: CreateShipmentDto,
         user: User,
     ): Promise<ShipmentResponseDto> {
+        const { inventoryId } = createShipmentDto;
         const inventory = await this.prismaService.inventory.findUnique({
-            where: { id: createShipmentDto.inventoryId },
+            where: { id: inventoryId },
         });
         if (!inventory) throw new NotFoundException('Inventory not found');
 
         const existingShipment =
-            await this.shipmentRepo.getActiveShipmentOfInventory(
-                createShipmentDto.inventoryId,
-            );
+            await this.shipmentRepo.getActiveShipmentOfInventory(inventoryId);
         if (existingShipment) {
             throw new BadRequestException(
                 'There is already an active shipment for this inventory',
@@ -48,8 +53,7 @@ export class ShipmentService {
         const shipmentData: Prisma.ShipmentCreateInput = {
             title: createShipmentDto.title,
             status: StatusShipmentEnum.PENDING,
-            isWaitingForChanges: false,
-            inventory: { connect: { id: createShipmentDto.inventoryId } },
+            inventory: { connect: { id: inventoryId } },
             user: { connect: { id: user.id } },
         };
 
@@ -68,13 +72,7 @@ export class ShipmentService {
                                 name: expense.name,
                                 amount: expense.amount,
                                 description: expense.description,
-                                tag: expense.tag
-                                    ? Object.values(ExpenseTag).includes(
-                                          expense.tag as any,
-                                      )
-                                        ? (expense.tag as ExpenseTag)
-                                        : ExpenseTag.OTHER
-                                    : ExpenseTag.OTHER,
+                                tag: expense.tag || ExpenseTag.OTHER,
                             }),
                         ),
                     });
@@ -91,9 +89,18 @@ export class ShipmentService {
             })
             .then((result) => result._sum.amount || 0);
 
-        return ShipmentHelper.mapToResponse(shipment, totalPrice);
+        const shipmentProducts =
+            await this.prismaService.shipmentProduct.findMany({
+                where: { shipmentId: shipment.id },
+            });
+        return ShipmentHelper.mapToResponse(
+            shipment,
+            totalPrice,
+            shipmentProducts,
+        );
     }
 
+    // DONE
     async updateShipment(
         id: number,
         updateShipmentDto: UpdateShipmentDto,
@@ -101,43 +108,9 @@ export class ShipmentService {
         const shipment = await this.shipmentRepo.getShipmentById(id);
         if (!shipment) throw new NotFoundException('Shipment not found');
 
-        const updateData: any = {};
+        const updateData: Prisma.ShipmentUpdateInput = {};
 
         updateData.title = updateShipmentDto.title;
-        updateData.numberOfTrucks = updateShipmentDto.numberOfTrucks;
-
-        // TODO remove this from update and make endpoint for each status and validate each status if its ready to be taken
-        // for example if the status is pending so i never can set it to accepted so prevent that and any other invalid case
-
-        // // Status transition logic
-        // if (
-        //     shipment.status === StatusShipmentEnum.PENDING &&
-        //     updateShipmentDto.status === StatusShipmentEnum.PENDING_REVIEW
-        // ) {
-        //     updateData.status = StatusShipmentEnum.PENDING_REVIEW;
-        //     updateData.isWaitingForChanges = false;
-        //     if (updateShipmentDto.reviewMessage) {
-        //         console.log(
-        //             `Admin review note: ${updateShipmentDto.reviewMessage} for shipment ${id}`,
-        //         );
-        //     }
-        // } else if (shipment.status === StatusShipmentEnum.PENDING_REVIEW) {
-        //     if (updateShipmentDto.isWaitingForChanges) {
-        //         updateData.status = StatusShipmentEnum.PENDING;
-        //         updateData.isWaitingForChanges = true;
-        //         if (updateShipmentDto.reviewMessage) {
-        //             console.log(
-        //                 `Admin returned shipment ${id} to PENDING with feedback: ${updateShipmentDto.reviewMessage}`,
-        //             );
-        //         }
-        //     } else if (
-        //         updateShipmentDto.status === StatusShipmentEnum.ACCEPTED
-        //     ) {
-        //         updateData.status = StatusShipmentEnum.ACCEPTED;
-        //         updateData.isWaitingForChanges = false;
-        //         await this.updateInventoryOnAccept(shipment);
-        //     }
-        // }
 
         if (updateShipmentDto.shipmentExpenses?.length) {
             await this.prismaService.$transaction(async (prisma) => {
@@ -150,17 +123,32 @@ export class ShipmentService {
                         name: expense.name,
                         amount: expense.amount,
                         description: expense.description,
-                        tag: expense.tag
-                            ? Object.values(ExpenseTag).includes(
-                                  expense.tag as any,
-                              )
-                                ? (expense.tag as ExpenseTag)
-                                : ExpenseTag.OTHER
-                            : ExpenseTag.OTHER,
+                        tag: expense.tag || ExpenseTag.OTHER,
                     })),
                 });
             });
         }
+
+        // if (updateShipmentDto.shipmentProducts?.length) {
+        //     await this.prismaService.$transaction(async (prisma) => {
+        //         await prisma.shipmentProduct.deleteMany({
+        //             where: { shipmentId: id },
+        //         });
+        //         await prisma.shipmentProduct.createMany({
+        //             data: updateShipmentDto.shipmentProducts.map((product) => ({
+        //                 shipmentId: id,
+        //                 productUnitId: product.productUnitId,
+        //                 quantity: product.quantity,
+        //                 piecesPerPallet: product.piecesPerPallet,
+        //                 pallets: product.quantity / product.piecesPerPallet,
+        //                 unitPrice: product.unitPrice,
+        //                 totalPrice:
+        //                     (product.quantity / product.piecesPerPallet) *
+        //                     product.unitPrice,
+        //             })),
+        //         });
+        //     });
+        // }
 
         const updatedShipment = await this.shipmentRepo.updateShipment(
             id,
@@ -171,35 +159,162 @@ export class ShipmentService {
             .aggregate({ where: { shipmentId: id }, _sum: { amount: true } })
             .then((result) => result._sum.amount || 0);
 
-        return ShipmentHelper.mapToResponse(updatedShipment, totalPrice);
+        const shipmentProducts =
+            await this.prismaService.shipmentProduct.findMany({
+                where: { shipmentId: id },
+            });
+        return ShipmentHelper.mapToResponse(
+            updatedShipment,
+            totalPrice,
+            shipmentProducts,
+        );
     }
 
-    async getShipment(id: number): Promise<ShipmentResponseDto> {
+    // DONE
+    async requestUpdate(
+        id: number,
+        body: RequestShipmentUpdateDto,
+    ): Promise<ShipmentResponseDto> {
         const shipment = await this.shipmentRepo.getShipmentById(id);
         if (!shipment) throw new NotFoundException('Shipment not found');
+        if (shipment.status !== StatusShipmentEnum.PENDING_REVIEW)
+            throw new BadRequestException('Shipment must be in review status');
+        const updatedShipment = await this.shipmentRepo.updateShipment(id, {
+            status: StatusShipmentEnum.PENDING,
+            reasonMessage: body.reviewMessage,
+        });
         const totalPrice = await this.prismaService.shipmentExpense
             .aggregate({ where: { shipmentId: id }, _sum: { amount: true } })
             .then((result) => result._sum.amount || 0);
-        return ShipmentHelper.mapToResponse(shipment, totalPrice);
+        const shipmentProducts =
+            await this.prismaService.shipmentProduct.findMany({
+                where: { shipmentId: id },
+            });
+        return ShipmentHelper.mapToResponse(
+            updatedShipment,
+            totalPrice,
+            shipmentProducts,
+        );
     }
 
+    // DONE
+    async acceptShipment(id: number): Promise<ShipmentResponseDto> {
+        const shipment = await this.shipmentRepo.getShipmentById(id);
+        if (!shipment) throw new NotFoundException('Shipment not found');
+
+        if (shipment.status !== StatusShipmentEnum.PENDING_REVIEW)
+            throw new BadRequestException('Shipment must be in review status');
+
+        const updatedShipment = await this.prismaService.$transaction(
+            async (prisma) => {
+                // update the inventory stock based on shipment products
+                // also update the current balance of the inventory
+                await Promise.all(
+                    shipment.shipmentProducts.map(async (product) => {
+                        await this.productUnitRepo.addMoreUnits(
+                            product.quantity,
+                            product.productUnitId,
+                            prisma,
+                        );
+                    }),
+                );
+                await this.inventoryRepo.decrementInventoryBalance(
+                    shipment.inventoryId,
+                    shipment.clarkInstallmentExpenses +
+                        shipment.otherExpenses +
+                        shipment.shipmentCardExpenses,
+                    prisma,
+                );
+                const updatedShipment = await this.shipmentRepo.updateShipment(
+                    id,
+                    {
+                        status: StatusShipmentEnum.ACCEPTED,
+                    },
+                    prisma,
+                );
+                return updatedShipment;
+            },
+        );
+
+        const totalPrice = await this.prismaService.shipmentExpense
+            .aggregate({ where: { shipmentId: id }, _sum: { amount: true } })
+            .then((result) => result._sum.amount || 0);
+        const shipmentProducts =
+            await this.prismaService.shipmentProduct.findMany({
+                where: { shipmentId: id },
+            });
+
+        return ShipmentHelper.mapToResponse(
+            updatedShipment,
+            totalPrice,
+            shipmentProducts,
+        );
+    }
+
+    // DONE
+    async getShipment(shipmentId: number): Promise<ShipmentResponseDto[]> {
+        const shipment = await this.prismaService.shipment.findUnique({
+            where: { id: shipmentId },
+            include: {
+                user: true,
+                inventory: true,
+                shipmentExpenses: true,
+                shipmentProducts: true,
+            },
+        });
+
+        if (!shipment) throw new NotFoundException('Shipment not found');
+
+        const totalPrice = await this.prismaService.shipmentExpense
+            .aggregate({
+                where: { shipmentId: shipment.id },
+                _sum: { amount: true },
+            })
+            .then((result) => result._sum.amount || 0);
+
+        return [
+            ShipmentHelper.mapToResponse(
+                shipment,
+                totalPrice,
+                shipment.shipmentProducts,
+                shipment.shipmentExpenses,
+            ),
+        ];
+    }
+
+    // DONE
     async getShipmentsCount(): Promise<number> {
         return this.prismaService.shipment.count();
     }
 
+    // DONE
     async getAllShipments(
-        page: number,
-        limit: number,
+        query: ShipmentQueryDto,
+        user: User,
     ): Promise<{ shipments: ShipmentResponseDto[]; total: number }> {
+        const currentUser = await this.userRepo.getUserById(user.id);
+
+        const { page = 1, limit = 10, title, ...filter } = query;
         const skip = (page - 1) * limit;
+
+        const where: Prisma.ShipmentWhereInput = {
+            ...filter,
+            title: title ? { contains: title, mode: 'insensitive' } : undefined,
+        };
+
+        if (user.role === RoleEnum.USER)
+            where.inventoryId = currentUser.inventoryId;
+
         const [shipments, total] = await this.prismaService.$transaction([
             this.prismaService.shipment.findMany({
+                where,
                 skip,
                 take: limit,
                 include: {
                     user: true,
                     inventory: true,
                     shipmentExpenses: true,
+                    shipmentProducts: true,
                 },
             }),
             this.prismaService.shipment.count(),
@@ -212,84 +327,107 @@ export class ShipmentService {
                         _sum: { amount: true },
                     })
                     .then((result) => result._sum.amount || 0);
-                return ShipmentHelper.mapToResponse(shipment, totalPrice);
+                const shipmentProducts =
+                    await this.prismaService.shipmentProduct.findMany({
+                        where: { shipmentId: shipment.id },
+                    });
+                return ShipmentHelper.mapToResponse(
+                    shipment,
+                    totalPrice,
+                    shipmentProducts,
+                );
             }),
         );
         return { shipments: response, total };
     }
 
-    async updateInventoryOnAccept(shipment: any) {
-        const inventory = await this.prismaService.inventory.findUnique({
-            where: { id: shipment.inventoryId },
-        });
-        if (!inventory) throw new NotFoundException('Inventory not found');
-
-        // Calculate financials based on shipment
-        const totalExpenses = await this.prismaService.shipmentExpense
-            .aggregate({
-                where: { shipmentId: shipment.id },
-                _sum: { amount: true },
-            })
-            .then((result) => result._sum.amount || 0);
-
-        const expectedCash = shipment.numberOfTrucks * 1000;
-        const currentBalanceFromInventory = inventory.currentBalance || 0;
-        const currentBalance = currentBalanceFromInventory + expectedCash;
-        const netCash = expectedCash - totalExpenses; // Cash in hand
-        const deposit = expectedCash * 0.8; // 80% deposit
-        const cashAfterDeposit = currentBalance - deposit; // المرحل
-
-        // Update inventory with calculated values
-        await this.prismaService.inventory.update({
-            where: { id: shipment.inventoryId },
-            data: {
-                name: `${inventory.name} (Accepted)`,
-                currentBalance: currentBalance,
-                totalBalance: currentBalance + deposit, // Total balance includes deposit
-                deposit: deposit,
-                expenses: totalExpenses,
-            },
-        });
-
-        // Update ProductUnit quantities directly
-        await this.prismaService.productUnit.updateMany({
-            where: { product: { inventoryId: shipment.inventoryId } },
-            data: { quantity: { increment: shipment.numberOfTrucks * 10 } },
-        });
-    }
-
-    async getWeeklySummary(): Promise<any> {
-        const startOfCurrentWeek = startOfWeek(new Date(), { weekStartsOn: 1 }); // Monday
-        const endOfCurrentWeek = endOfWeek(new Date(), { weekStartsOn: 1 });
-        const weeklyShipments = await this.prismaService.shipment.findMany({
-            where: {
-                status: StatusShipmentEnum.ACCEPTED,
-                updatedAt: { gte: startOfCurrentWeek, lte: endOfCurrentWeek },
-            },
-            include: { shipmentExpenses: true },
-        });
-
-        let weeklyExpectedCash = 0;
-        let weeklyTotalExpenses = 0;
-        weeklyShipments.forEach((s) => {
-            weeklyExpectedCash += s.numberOfTrucks * 1000;
-            weeklyTotalExpenses += s.shipmentExpenses.reduce(
-                (sum, exp) => sum + exp.amount,
-                0,
+    // DONE
+    async submitShipmentForReview(
+        id: number,
+        body: SubmitShipmentForReview,
+        user: User,
+    ) {
+        const shipment = await this.shipmentRepo.getShipmentById(id);
+        if (!shipment) throw new NotFoundException('Shipment not found');
+        if (shipment.status !== StatusShipmentEnum.PENDING)
+            throw new BadRequestException(
+                'Only shipments in pending status can be submitted for review',
             );
-        });
+        const currentUser = await this.userRepo.getUserById(user.id);
+        if (currentUser.inventoryId !== shipment.inventoryId) {
+            throw new ForbiddenException(
+                'You do not have permission to submit this shipment for review',
+            );
+        }
 
-        const weeklyNetCash = weeklyExpectedCash - weeklyTotalExpenses;
-        const weeklyCashAfterDeposit =
-            weeklyExpectedCash - weeklyExpectedCash * 0.8;
+        const updatedShipment = await this.prismaService.$transaction(
+            async (prisma) => {
+                await prisma.shipmentProduct.deleteMany({
+                    where: { shipmentId: id },
+                });
+                if (body.addShipmentProducts?.length) {
+                    const productUnites =
+                        await this.productUnitRepo.getProductUnitsByIdsWithDetails(
+                            body.addShipmentProducts.map(
+                                (p) => p.productUnitId,
+                            ),
+                        );
+                    const mergedProductUnits = body.addShipmentProducts.map(
+                        (product) => {
+                            const productUnit = productUnites.find(
+                                (p) => p.id === product.productUnitId,
+                            );
+                            if (!productUnit)
+                                throw new NotFoundException(
+                                    `Product unit with ID ${product.productUnitId} not found`,
+                                );
+                            if (
+                                productUnit.product.inventoryId !==
+                                shipment.inventoryId
+                            )
+                                throw new BadRequestException(
+                                    `Product unit with ID ${product.productUnitId} does not belong to the same inventory`,
+                                );
+                            return {
+                                ...productUnit,
+                                newQuantity: product.quantity,
+                            };
+                        },
+                    );
+                    await prisma.shipmentProduct.createMany({
+                        data: mergedProductUnits.map((productUnit) => ({
+                            shipmentId: id,
+                            productUnitId: productUnit.id,
+                            quantity: productUnit.newQuantity,
+                            piecesPerPallet: productUnit.quantity,
+                            pallets:
+                                productUnit.newQuantity / productUnit.quantity,
+                            unitPrice: productUnit.product.price,
+                            totalPrice:
+                                (productUnit.newQuantity /
+                                    productUnit.quantity) *
+                                productUnit.product.price,
+                        })),
+                    });
+                }
+                return await this.shipmentRepo.updateShipment(id, {
+                    status: StatusShipmentEnum.PENDING_REVIEW,
+                });
+            },
+        );
 
-        return {
-            startOfWeek: startOfCurrentWeek,
-            endOfWeek: endOfCurrentWeek,
-            expectedCash: weeklyExpectedCash,
-            totalExpenses: weeklyTotalExpenses,
-            netCash: weeklyNetCash,
-            cashAfterDeposit: weeklyCashAfterDeposit,
-        };
+        const totalPrice = await this.prismaService.shipmentExpense
+            .aggregate({ where: { shipmentId: id }, _sum: { amount: true } })
+            .then((result) => result._sum.amount || 0);
+        const shipmentProducts =
+            await this.prismaService.shipmentProduct.findMany({
+                where: { shipmentId: id },
+            });
+
+        return ShipmentHelper.mapToResponse(
+            updatedShipment,
+            totalPrice,
+            shipmentProducts,
+        );
     }
 }

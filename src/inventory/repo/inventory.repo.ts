@@ -56,4 +56,70 @@ export class InventoryRepo {
     async getInventoryCount(where: Prisma.InventoryWhereInput) {
         return this.prismaService.inventory.count({ where });
     }
+
+    async incrementInventoryBalance(
+        id: number,
+        amount: number,
+        prisma: Prisma.TransactionClient,
+    ) {
+        return prisma.inventory.update({
+            where: { id },
+            data: {
+                currentBalance: {
+                    increment: amount,
+                },
+                totalBalance: {
+                    increment: amount,
+                },
+            },
+        });
+    }
+
+    async decrementInventoryBalance(
+        id: number,
+        amount: number,
+        prisma: Prisma.TransactionClient,
+    ) {
+        return prisma.inventory.update({
+            where: { id },
+            data: {
+                currentBalance: {
+                    decrement: amount,
+                },
+                totalBalance: {
+                    decrement: amount,
+                },
+            },
+        });
+    }
+
+    async incrementInventoryCurrentBalance(
+        id: number,
+        amount: number,
+        prisma: Prisma.TransactionClient,
+    ) {
+        return prisma.inventory.update({
+            where: { id },
+            data: {
+                currentBalance: {
+                    increment: amount,
+                },
+            },
+        });
+    }
+
+    async decrementInventoryCurrentBalance(
+        id: number,
+        amount: number,
+        prisma: Prisma.TransactionClient,
+    ) {
+        return prisma.inventory.update({
+            where: { id },
+            data: {
+                currentBalance: {
+                    decrement: amount,
+                },
+            },
+        });
+    }
 }

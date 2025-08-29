@@ -19,6 +19,8 @@ import {
     CreateShipmentDto,
     UpdateShipmentDto,
     ShipmentQueryDto,
+    RequestShipmentUpdateDto,
+    SubmitShipmentForReview,
 } from './dto/shipment.dto';
 
 @ApiTags('Shipment')
@@ -46,37 +48,54 @@ export class ShipmentController {
     @ApiBearerAuth('default')
     @ApiOperation({
         summary: 'Update shipment data',
-        description: 'Update shipment details, expenses, or status by admin',
+        description:
+            'Update shipment details, expenses, or products by admin for a specific inventory',
     })
     @Patch(':id')
     async updateShipment(
         @Param('id') id: number,
         @Body() updateShipmentDto: UpdateShipmentDto,
     ) {
-        return this.shipmentService.updateShipment(+id, updateShipmentDto);
+        return this.shipmentService.updateShipment(id, updateShipmentDto);
     }
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(RoleEnum.ADMIN)
     @ApiBearerAuth('default')
     @ApiOperation({
-        summary: 'Get weekly shipment summary',
-        description: 'Get summary of shipments for the current week',
+        summary: 'Send shipment for review',
+        description:
+            'Send shipment for admin review with a message for a specific inventory',
     })
-    @Get('weekly-summary')
-    async getWeeklySummary(@GetUser() user: User) {
-        return this.shipmentService.getWeeklySummary();
+    @Patch(':id/request-update')
+    async sendForReview(
+        @Param('id') id: number,
+        @Body() body: RequestShipmentUpdateDto,
+    ) {
+        return this.shipmentService.requestUpdate(id, body);
+    }
+
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(RoleEnum.ADMIN)
+    @ApiBearerAuth('default')
+    @ApiOperation({
+        summary: 'Accept shipment',
+        description: 'Accept shipment and update inventory',
+    })
+    @Patch(':id/accept')
+    async acceptShipment(@Param('id') id: number) {
+        return this.shipmentService.acceptShipment(id);
     }
 
     @UseGuards(AuthGuard('jwt'))
     @ApiBearerAuth('default')
     @ApiOperation({
-        summary: 'Get shipment details',
-        description: 'Get details of a specific shipment',
+        summary: 'Get shipment details ',
+        description: 'Get details of shipment',
     })
     @Get(':id')
-    async getShipment(@Param('id') id: number, @GetUser() user: User) {
-        return this.shipmentService.getShipment(+id);
+    async getShipment(@Param('id') inventoryId: number) {
+        return this.shipmentService.getShipment(inventoryId);
     }
 
     @UseGuards(AuthGuard('jwt'))
@@ -90,8 +109,7 @@ export class ShipmentController {
         @Query() query: ShipmentQueryDto,
         @GetUser() user: User,
     ) {
-        const { page = 1, limit = 10 } = query;
-        return this.shipmentService.getAllShipments(page, limit);
+        return this.shipmentService.getAllShipments(query, user);
     }
 
     @UseGuards(AuthGuard('jwt'))
@@ -101,7 +119,23 @@ export class ShipmentController {
         description: 'Get the total number of shipments',
     })
     @Get('count')
-    async getShipmentsCount(@GetUser() user: User) {
+    async getShipmentsCount() {
         return this.shipmentService.getShipmentsCount();
+    }
+
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(RoleEnum.USER)
+    @ApiBearerAuth('default')
+    @ApiOperation({
+        summary: 'Submit shipment for review',
+        description: 'Submit shipment for review by user',
+    })
+    @Post(':id/submit-for-review')
+    async submitShipmentForReview(
+        @Param('id') id: number,
+        @Body() body: SubmitShipmentForReview,
+        @GetUser() user: User,
+    ) {
+        return this.shipmentService.submitShipmentForReview(id, body, user);
     }
 }

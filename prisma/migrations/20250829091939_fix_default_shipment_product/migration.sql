@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "public"."ShipmentProduct" ALTER COLUMN "quantity" DROP DEFAULT,
+ALTER COLUMN "piecesPerPallet" DROP DEFAULT,
+ALTER COLUMN "pallets" DROP DEFAULT,
+ALTER COLUMN "unitPrice" DROP DEFAULT,
+ALTER COLUMN "totalPrice" DROP DEFAULT;

@@ -25,7 +25,7 @@ export class ProductService {
                 ? {
                       create: createProductDto.productUnits.map((unit) => ({
                           quantity: unit.quantity,
-                          value: unit.value, // Ensure 'value' is provided
+                          value: unit.value,
                       })),
                   }
                 : undefined,
