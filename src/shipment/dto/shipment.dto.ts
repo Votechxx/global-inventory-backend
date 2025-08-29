@@ -12,6 +12,7 @@ import {
     IntersectionType,
     OmitType,
     PartialType,
+    PickType,
 } from '@nestjs/swagger';
 import { ExpenseTag, StatusShipmentEnum } from '@prisma/client';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
@@ -44,8 +45,11 @@ export class ShipmentExpenseDto {
     tag?: ExpenseTag;
 }
 
-export class ShipmentProductDto {
-    @ApiProperty({ description: 'Product Unit ID associated with the shipment', required: true })
+export class AddShipmentProductDto {
+    @ApiProperty({
+        description: 'Product Unit ID associated with the shipment',
+        required: true,
+    })
     @IsNotEmpty()
     @IsInt()
     @Type(() => Number)
@@ -56,18 +60,6 @@ export class ShipmentProductDto {
     @IsInt()
     @Type(() => Number)
     quantity: number;
-
-    @ApiProperty({ description: 'Pieces per pallet', required: true })
-    @IsNotEmpty()
-    @IsInt()
-    @Type(() => Number)
-    piecesPerPallet: number;
-
-    @ApiProperty({ description: 'Unit price per pallet', required: true })
-    @IsNotEmpty()
-    @IsNumber()
-    @Type(() => Number)
-    unitPrice: number;
 }
 
 export class CreateShipmentDto {
@@ -77,15 +69,6 @@ export class CreateShipmentDto {
     title: string;
 
     @ApiProperty({
-        description: 'List of shipment products',
-        required: true,
-        type: [ShipmentProductDto],
-    })
-    @IsNotEmpty()
-    @IsArray()
-    shipmentProducts: ShipmentProductDto[];
-
-    @ApiProperty({
         description: 'List of shipment expenses',
         required: false,
         type: [ShipmentExpenseDto],
@@ -93,6 +76,15 @@ export class CreateShipmentDto {
     @IsOptional()
     @IsArray()
     shipmentExpenses?: ShipmentExpenseDto[];
+
+    @ApiProperty({
+        description: 'ID of the inventory the shipment belongs to',
+        required: true,
+    })
+    @IsNotEmpty()
+    @IsInt()
+    @Type(() => Number)
+    inventoryId: number;
 }
 
 export class UpdateShipmentDto {
@@ -100,21 +92,6 @@ export class UpdateShipmentDto {
     @IsOptional()
     @IsString()
     title?: string;
-
-    @ApiProperty({ description: 'Number of trucks', required: false })
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
-    numberOfTrucks?: number;
-
-    @ApiProperty({
-        description: 'List of shipment products to update',
-        required: false,
-        type: [ShipmentProductDto],
-    })
-    @IsOptional()
-    @IsArray()
-    shipmentProducts?: ShipmentProductDto[];
 
     @ApiProperty({
         description: 'List of shipment expenses to add',
@@ -168,11 +145,11 @@ export class ShipmentResponseDto {
 
     @ApiProperty({
         description: 'List of shipment products',
-        type: [ShipmentProductDto],
+        type: [AddShipmentProductDto],
     })
     @IsOptional()
     @IsArray()
-    shipmentProducts?: ShipmentProductDto[];
+    shipmentProducts?: AddShipmentProductDto[];
 
     @ApiProperty({ description: 'Creation date' })
     createdAt: Date;
@@ -187,14 +164,33 @@ export class ShipmentResponseDto {
     shipmentExpenses: ShipmentExpenseDto[];
 }
 
+export class SubmitShipmentForReview {
+    @ApiProperty({
+        description: 'List of shipment products',
+        required: true,
+        type: [AddShipmentProductDto],
+    })
+    @IsNotEmpty()
+    @IsArray()
+    addShipmentProducts: AddShipmentProductDto[];
+}
+
+export class RequestShipmentUpdateDto {
+    @ApiProperty({ description: 'Message for the review', required: true })
+    @IsNotEmpty()
+    @IsString()
+    reviewMessage: string;
+}
+
 export class ShipmentQueryDto extends PartialType(
     IntersectionType(
-        OmitType(ShipmentResponseDto, [
-            'createdAt',
-            'updatedAt',
-            'totalPrice',
-            'shipmentExpenses',
-            'shipmentProducts',
+        PickType(ShipmentResponseDto, [
+            'id',
+            'inventoryId',
+            'numberOfTrucks',
+            'status',
+            'title',
+            'uuid',
         ] as const),
         PaginationDto,
     ),

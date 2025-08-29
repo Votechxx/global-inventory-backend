@@ -61,32 +61,32 @@ model Product {
 model ProductUnit {
   id        Int      @id @default(autoincrement())
   uuid      String   @unique @default(uuid())
-  quantity  Int      @default(0)
+  quantity  Int      @default(0) // The per unit quantity (e.g., pieces per box) // ex: 24(quantity) pieces per box
   productId Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  value     Int
+  value     Int // The total value (e.g., total pieces in stock = boxes * pieces per box)   ex: value / quantity = number of boxes
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   ShipmentProduct ShipmentProduct[]
 }
 
 model Inventory {
-  id          Int        @id @default(autoincrement())
-  uuid        String     @unique @default(uuid())
-  name        String
-  description String?
-  location    String?
-  currentBalance Float   @default(0)
-  totalBalance Float    @default(0)
-  deposit       Float      @default(0)
-  expenses      Float      @default(0)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  Expense     Expense[]
-  Product     Product[]
-  Shipment    Shipment[]
-  workers     User[]
+  id             Int        @id @default(autoincrement())
+  uuid           String     @unique @default(uuid())
+  name           String
+  description    String?
+  location       String?
+  currentBalance Float      @default(0)
+  totalBalance   Float      @default(0)
+  deposit        Float      @default(0)
+  expenses       Float      @default(0)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  Expense        Expense[]
+  Product        Product[]
+  Shipment       Shipment[]
+  workers        User[]
 }
 
 model Expense {
@@ -105,51 +105,57 @@ model Expense {
 }
 
 model Shipment {
-  id                Int              @id @default(autoincrement())
-  uuid              String           @unique @default(uuid())
-  title             String           @db.VarChar(255)
-  numberOfTrucks    Int              @default(1)
-  status            StatusShipmentEnum   @default(PENDING)
-  inventoryId       Int
-  isWaitingForChanges Boolean        @default(false)
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  userId            Int?
-  user              User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
-  inventory         Inventory        @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
-  shipmentExpenses  ShipmentExpense[] 
+  id                  Int                @id @default(autoincrement())
+  uuid                String             @unique @default(uuid())
+  title               String             @db.VarChar(255)
+  numberOfTrucks      Int                @default(1)
+  status              StatusShipmentEnum @default(PENDING)
+  inventoryId         Int
+  isWaitingForChanges Boolean            @default(false)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  userId              Int?
+  user                User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  inventory           Inventory          @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+
+  reasonMessage String?
+
+  shipmentCardExpenses     Float?
+  clarkInstallmentExpenses Float?
+  otherExpenses            Float?
+
+  shipmentExpenses ShipmentExpense[]
   shipmentProducts ShipmentProduct[]
 }
 
 model ShipmentExpense {
-  id          Int      @id @default(autoincrement())
-  uuid        String   @unique @default(uuid())
+  id          Int         @id @default(autoincrement())
+  uuid        String      @unique @default(uuid())
   shipmentId  Int
   name        String
   amount      Float
   description String?
   tag         ExpenseTag?
-  shipment    Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  shipment    Shipment    @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
 model ShipmentProduct {
-  id              Int           @id @default(autoincrement())
+  id              Int   @id @default(autoincrement())
   shipmentId      Int
   productUnitId   Int
-  quantity        Int           @default(0) // العدد بالقطع
-  piecesPerPallet Int           @default(1) // كام قطعه في البالتة
-  pallets         Float         @default(0) // عدد البالتات (quantity / piecesPerPallet)
-  unitPrice       Float         @default(0) // سعر الوحدة
-  totalPrice      Float         @default(0) // السعر الإجمالي (pallets * unitPrice)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  shipment        Shipment      @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
-  productUnit     ProductUnit   @relation(fields: [productUnitId], references: [id], onDelete: Cascade)
- 
-  
-  
+  quantity        Int // العدد بالقطع ex: 200 pieces   (pallets * piecesPerPallet) ex: 1.5 pallets * 144 pieces per pallet = 216 pieces
+  piecesPerPallet Int // كام قطعه في البالتة   The quantity per pallet (e.g., pieces per pallet) ex: 144 pieces per pallet
+  pallets         Float // عدد البالتات (quantity / piecesPerPallet) ex: 1.5 pallets
+  unitPrice       Float // سعر الوحدة
+  totalPrice      Float // السعر الإجمالي (pallets * unitPrice)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  shipment    Shipment    @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  productUnit ProductUnit @relation(fields: [productUnitId], references: [id], onDelete: Cascade)
 }
 
 model File {
