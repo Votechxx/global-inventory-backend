@@ -105,18 +105,17 @@ model Expense {
 }
 
 model Shipment {
-  id                  Int                @id @default(autoincrement())
-  uuid                String             @unique @default(uuid())
-  title               String             @db.VarChar(255)
-  numberOfTrucks      Int                @default(1)
-  status              StatusShipmentEnum @default(PENDING)
-  inventoryId         Int
-  isWaitingForChanges Boolean            @default(false)
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
-  userId              Int?
-  user                User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
-  inventory           Inventory          @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  id             Int                @id @default(autoincrement())
+  uuid           String             @unique @default(uuid())
+  title          String             @db.VarChar(255)
+  numberOfTrucks Int                @default(1)
+  status         StatusShipmentEnum @default(PENDING)
+  inventoryId    Int
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  userId         Int?
+  user           User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  inventory      Inventory          @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
 
   reasonMessage String?
 

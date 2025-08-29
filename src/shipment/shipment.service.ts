@@ -53,7 +53,6 @@ export class ShipmentService {
         const shipmentData: Prisma.ShipmentCreateInput = {
             title: createShipmentDto.title,
             status: StatusShipmentEnum.PENDING,
-            isWaitingForChanges: false,
             inventory: { connect: { id: inventoryId } },
             user: { connect: { id: user.id } },
         };
