@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ShipmentService } from './shipment.service';
 import { ShipmentController } from './shipment.controller';
 import { ShipmentRepo } from './repo/shipment.repo';
@@ -9,18 +9,34 @@ import { ExpenseHelper } from 'src/expense/helpers/expense.helper';
 import { InventoryService } from 'src/inventory/inventory.service';
 import { InventoryRepo } from 'src/inventory/repo/inventory.repo';
 import { InventoryHelper } from 'src/inventory/helpers/inventory.helper';
+import { UserModule } from 'src/core/user/user.module';
+import { InventoryModule } from 'src/inventory/inventory.module';
+import { ProductModule } from 'src/product/product.module';
 
 @Module({
-  providers: [
-    ShipmentService, ShipmentRepo, ShipmentHelper, 
-    ExpenseHelper, ExpenseRepo, ExpenseService,
-    InventoryService,InventoryRepo,InventoryHelper
-  ],
-  controllers: [ShipmentController],
-  exports: [
-    ShipmentService, ShipmentRepo,
-    ExpenseRepo,
-    InventoryService,InventoryRepo
-  ],
+    imports: [
+        forwardRef(() => UserModule),
+        forwardRef(() => InventoryModule),
+        forwardRef(() => ProductModule),
+    ],
+    providers: [
+        ShipmentService,
+        ShipmentRepo,
+        ShipmentHelper,
+        ExpenseHelper,
+        ExpenseRepo,
+        ExpenseService,
+        InventoryService,
+        InventoryRepo,
+        InventoryHelper,
+    ],
+    controllers: [ShipmentController],
+    exports: [
+        ShipmentService,
+        ShipmentRepo,
+        ExpenseRepo,
+        InventoryService,
+        InventoryRepo,
+    ],
 })
 export class ShipmentModule {}

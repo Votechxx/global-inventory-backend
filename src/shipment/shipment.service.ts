@@ -19,7 +19,6 @@ import { ShipmentHelper } from './helpers/shipment.helper';
 import { StatusShipmentEnum, ExpenseTag } from '@prisma/client';
 import { InventoryRepo } from 'src/inventory/repo/inventory.repo';
 import { ProductUnitRepo } from 'src/product/repo/product-unit.repo';
-import { queryObjects } from 'v8';
 import { UserRepo } from 'src/core/user/repo/user.repo';
 
 @Injectable()
