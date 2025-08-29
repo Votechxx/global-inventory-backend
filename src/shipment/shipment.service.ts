@@ -253,35 +253,34 @@ export class ShipmentService {
     }
 
     // DONE
-    async getShipment(inventoryId: number): Promise<ShipmentResponseDto[]> {
-        const shipments = await this.prismaService.shipment.findMany({
-            where: { inventoryId },
+    async getShipment(shipmentId: number): Promise<ShipmentResponseDto[]> {
+        const shipment = await this.prismaService.shipment.findUnique({
+            where: { id: shipmentId },
+            include: {
+                user: true,
+                inventory: true,
+                shipmentExpenses: true,
+                shipmentProducts: true,
+            },
         });
-        if (!shipments.length)
-            throw new NotFoundException(
-                'No shipments found for this inventory',
-            );
 
-        const response = await Promise.all(
-            shipments.map(async (shipment) => {
-                const totalPrice = await this.prismaService.shipmentExpense
-                    .aggregate({
-                        where: { shipmentId: shipment.id },
-                        _sum: { amount: true },
-                    })
-                    .then((result) => result._sum.amount || 0);
-                const shipmentProducts =
-                    await this.prismaService.shipmentProduct.findMany({
-                        where: { shipmentId: shipment.id },
-                    });
-                return ShipmentHelper.mapToResponse(
-                    shipment,
-                    totalPrice,
-                    shipmentProducts,
-                );
-            }),
-        );
-        return response;
+        if (!shipment) throw new NotFoundException('Shipment not found');
+
+        const totalPrice = await this.prismaService.shipmentExpense
+            .aggregate({
+                where: { shipmentId: shipment.id },
+                _sum: { amount: true },
+            })
+            .then((result) => result._sum.amount || 0);
+
+        return [
+            ShipmentHelper.mapToResponse(
+                shipment,
+                totalPrice,
+                shipment.shipmentProducts,
+                shipment.shipmentExpenses,
+            ),
+        ];
     }
 
     // DONE
@@ -355,7 +354,8 @@ export class ShipmentService {
             throw new BadRequestException(
                 'Only shipments in pending status can be submitted for review',
             );
-        if (user.inventoryId !== shipment.inventoryId) {
+        const currentUser = await this.userRepo.getUserById(user.id);
+        if (currentUser.inventoryId !== shipment.inventoryId) {
             throw new ForbiddenException(
                 'You do not have permission to submit this shipment for review',
             );

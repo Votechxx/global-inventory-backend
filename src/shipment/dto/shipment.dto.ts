@@ -129,9 +129,32 @@ export class ShipmentResponseDto {
     @IsEnum(StatusShipmentEnum)
     status: StatusShipmentEnum;
 
-    @ApiProperty({ description: 'Waiting for changes flag' })
+    @ApiProperty({
+        description:
+            'shipment card expenses, this will affect the inventory balance',
+    })
     @IsNotEmpty()
-    isWaitingForChanges: boolean;
+    @IsNumber()
+    @Type(() => Number)
+    shipmentCardExpenses: number | null;
+
+    @ApiProperty({
+        description:
+            'shipment clark installment expenses, this will affect the inventory balance',
+    })
+    @IsNotEmpty()
+    @IsNumber()
+    @Type(() => Number)
+    clarkInstallmentExpenses: number | null;
+
+    @ApiProperty({
+        description:
+            'Other expenses related to the shipment, this will affect the inventory balance',
+    })
+    @IsNotEmpty()
+    @IsNumber()
+    @Type(() => Number)
+    otherExpenses: number | null;
 
     @ApiProperty({ description: 'Inventory ID' })
     @IsNotEmpty()

@@ -6,7 +6,7 @@ export class ShipmentHelper {
         shipment: Shipment,
         totalPrice: number,
         shipmentProducts: ShipmentProduct[],
-        shipmentExpenses: ShipmentExpense[] = []
+        shipmentExpenses: ShipmentExpense[] = [],
     ): ShipmentResponseDto {
         return {
             id: shipment.id,
@@ -14,10 +14,12 @@ export class ShipmentHelper {
             title: shipment.title,
             numberOfTrucks: shipment.numberOfTrucks || 0,
             status: shipment.status,
-            isWaitingForChanges: shipment.isWaitingForChanges,
             inventoryId: shipment.inventoryId,
             totalPrice: totalPrice,
-            shipmentProducts: shipmentProducts.map(p => ({
+            clarkInstallmentExpenses: shipment.clarkInstallmentExpenses,
+            shipmentCardExpenses: shipment.shipmentCardExpenses,
+            otherExpenses: shipment.otherExpenses,
+            shipmentProducts: shipmentProducts.map((p) => ({
                 productUnitId: p.productUnitId,
                 quantity: p.quantity,
                 piecesPerPallet: p.piecesPerPallet,

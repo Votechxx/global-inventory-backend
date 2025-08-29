@@ -90,8 +90,8 @@ export class ShipmentController {
     @UseGuards(AuthGuard('jwt'))
     @ApiBearerAuth('default')
     @ApiOperation({
-        summary: 'Get shipment details by inventory',
-        description: 'Get details of shipments for a specific inventory',
+        summary: 'Get shipment details ',
+        description: 'Get details of shipment',
     })
     @Get(':id')
     async getShipment(@Param('id') inventoryId: number) {
