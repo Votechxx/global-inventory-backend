@@ -4,8 +4,10 @@ import {
     CreateProductDto,
     UpdateProductDto,
     AddToInventoryDto,
+    productQueryDto,
 } from './dto/product.dto';
 import { ProductRepo } from './repo/product.repo';
+import { RoleEnum, User } from '@prisma/client';
 
 @Injectable()
 export class ProductService {
@@ -44,8 +46,15 @@ export class ProductService {
         return product;
     }
 
-    async getAllProducts() {
-        const products = await this.productRepo.getAllProducts();
+    async getAllProducts(user: User, query: productQueryDto) {
+        if (user.role === RoleEnum.USER) {
+            const currentUser = await this.prismaService.user.findUnique({
+                where: { id: user.id },
+            });
+            if (!currentUser) throw new NotFoundException('User not found');
+            query.inventoryId = currentUser.inventoryId;
+        }
+        const products = await this.productRepo.getAllProducts(query);
         return products.map((product) => {
             if (product.productUnits && Array.isArray(product.productUnits)) {
                 product.productUnits = product.productUnits.map((unit) => ({

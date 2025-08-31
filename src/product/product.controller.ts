@@ -16,7 +16,12 @@ import { GetUser } from '../core/auth/decorator/get-user.decorator';
 import { RoleEnum, User } from '@prisma/client';
 import { RolesGuard } from '../core/auth/guard/roles.guard';
 import { Roles } from '../core/auth/decorator/roles.decorator';
-import { CreateProductDto, UpdateProductDto, AddToInventoryDto } from './dto/product.dto';
+import {
+    CreateProductDto,
+    UpdateProductDto,
+    AddToInventoryDto,
+    productQueryDto,
+} from './dto/product.dto';
 
 @ApiTags('Product')
 @Controller('products')
@@ -31,7 +36,7 @@ export class ProductController {
         description: 'Create a new product by admin',
     })
     @Post()
-    createProduct(@Body() createProductDto: CreateProductDto, @GetUser() user: User) {
+    createProduct(@Body() createProductDto: CreateProductDto) {
         return this.productService.createProduct(createProductDto);
     }
 
@@ -53,8 +58,11 @@ export class ProductController {
         description: 'Get a list of all products',
     })
     @Get()
-    async getAllProducts() {
-        return this.productService.getAllProducts();
+    async getAllProducts(
+        @GetUser() user: User,
+        @Query() query: productQueryDto,
+    ) {
+        return this.productService.getAllProducts(user, query);
     }
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -68,7 +76,6 @@ export class ProductController {
     async updateProduct(
         @Param('id') id: number,
         @Body() updateProductDto: UpdateProductDto,
-        @GetUser() user: User,
     ) {
         return this.productService.updateProduct(+id, updateProductDto);
     }
@@ -96,7 +103,6 @@ export class ProductController {
     async addToInventory(
         @Param('id') id: number,
         @Body() addToInventoryDto: AddToInventoryDto,
-        @GetUser() user: User,
     ) {
         return this.productService.addToInventory(+id, addToInventoryDto);
     }

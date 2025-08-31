@@ -60,8 +60,8 @@ export class ExpenseController {
         description: 'Get list of expenses with optional inventory filter',
     })
     @Get()
-    getAllExpenses(@Query() query: ExpenseQueryDto) {
-        return this.expenseService.getAllExpenses(query);
+    getAllExpenses(@Query() query: ExpenseQueryDto, @GetUser() user: User) {
+        return this.expenseService.getAllExpenses(query, user);
     }
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)

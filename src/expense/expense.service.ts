@@ -8,6 +8,7 @@ import {
 } from './dto/expense.dto';
 import { ExpenseRepo } from './repo/expense.repo';
 import { ExpenseHelper } from './helpers/expense.helper';
+import { RoleEnum, User } from '@prisma/client';
 
 @Injectable()
 export class ExpenseService {
@@ -39,7 +40,14 @@ export class ExpenseService {
         return expense;
     }
 
-    async getAllExpenses(query: ExpenseQueryDto) {
+    async getAllExpenses(query: ExpenseQueryDto, user: User) {
+        if (user.role === RoleEnum.USER) {
+            const currentUser = await this.prismaService.user.findUnique({
+                where: { id: user.id },
+            });
+            if (!currentUser) throw new NotFoundException('User not found');
+            query.inventoryId = currentUser.inventoryId;
+        }
         const expenses = await this.expenseRepo.getAllExpenses(query);
         return expenses;
     }

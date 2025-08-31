@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/common/modules/prisma/prisma.service';
+import { productQueryDto } from '../dto/product.dto';
 
 @Injectable()
 export class ProductRepo {
@@ -96,8 +97,18 @@ export class ProductRepo {
         return this.prismaService.product.delete({ where: { id } });
     }
 
-    async getAllProducts() {
+    async getAllProducts(query: productQueryDto) {
+        const { page = 1, limit = 500, name, ...filter } = query;
+
+        const where: Prisma.ProductWhereInput = {
+            name: name ? { contains: name, mode: 'insensitive' } : undefined,
+            ...filter,
+        };
+
         return this.prismaService.product.findMany({
+            where,
+            skip: (page - 1) * limit,
+            take: limit,
             select: {
                 id: true,
                 name: true,
