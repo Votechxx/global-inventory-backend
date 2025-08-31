@@ -15,6 +15,7 @@ import {
 } from '@nestjs/swagger';
 import { ExpenseTag } from '@prisma/client';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { Type } from 'class-transformer';
 
 export class ExpenseDto {
     @ApiProperty({
@@ -47,6 +48,7 @@ export class ExpenseDto {
     })
     @IsNotEmpty()
     @IsNumber()
+    @Type(() => Number)
     amount: number;
 
     @ApiProperty({
@@ -72,6 +74,7 @@ export class ExpenseDto {
     })
     @IsNotEmpty()
     @IsInt()
+    @Type(() => Number)
     inventoryId: number;
 
     @ApiProperty({
@@ -80,6 +83,7 @@ export class ExpenseDto {
     })
     @IsNotEmpty()
     @IsInt()
+    @Type(() => Number)
     userId: number;
 
     createdAt: Date;
