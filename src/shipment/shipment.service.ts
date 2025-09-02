@@ -434,6 +434,9 @@ export class ShipmentService {
                 }
                 return await this.shipmentRepo.updateShipment(id, {
                     status: StatusShipmentEnum.PENDING_REVIEW,
+                    clarkInstallmentExpenses: body.clarkInstallmentExpenses,
+                    otherExpenses: body.otherExpenses,
+                    shipmentCardExpenses: body.shipmentCardExpenses,
                 });
             },
         );

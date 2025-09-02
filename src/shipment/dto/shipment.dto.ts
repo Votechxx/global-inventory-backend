@@ -190,7 +190,11 @@ export class ShipmentResponseDto {
     shipmentExpenses: ShipmentExpenseDto[];
 }
 
-export class SubmitShipmentForReview {
+export class SubmitShipmentForReview extends PickType(ShipmentResponseDto, [
+    'clarkInstallmentExpenses',
+    'shipmentCardExpenses',
+    'otherExpenses',
+] as const) {
     @ApiProperty({
         description: 'List of shipment products',
         required: true,
