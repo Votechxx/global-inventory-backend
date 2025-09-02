@@ -102,9 +102,7 @@ export class UserCreateExpenseDto extends OmitType(CreateExpenseDto, [
     'inventoryId',
 ] as const) {}
 
-export class UpdateExpenseDto extends PartialType(
-    OmitType(UserCreateExpenseDto, ['inventoryId'] as const),
-) {}
+export class UpdateExpenseDto extends PartialType(UserCreateExpenseDto) {}
 
 export class ExpenseQueryDto extends PartialType(
     IntersectionType(

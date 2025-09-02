@@ -260,16 +260,7 @@ export class ShipmentService {
                 inventory: true,
                 shipmentExpenses: true,
                 shipmentProducts: {
-                    select: {
-                        id: true,
-                        quantity: true,
-                        piecesPerPallet: true,
-                        pallets: true,
-                        unitPrice: true,
-                        totalPrice: true,
-                        createdAt: true,
-                        updatedAt: true,
-                        productUnitId: true,
+                    include: {
                         productUnit: {
                             select: {
                                 id: true,
