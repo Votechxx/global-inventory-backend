@@ -259,7 +259,38 @@ export class ShipmentService {
                 user: true,
                 inventory: true,
                 shipmentExpenses: true,
-                shipmentProducts: true,
+                shipmentProducts: {
+                    select: {
+                        id: true,
+                        quantity: true,
+                        piecesPerPallet: true,
+                        pallets: true,
+                        unitPrice: true,
+                        totalPrice: true,
+                        createdAt: true,
+                        updatedAt: true,
+                        productUnitId: true,
+                        productUnit: {
+                            select: {
+                                id: true,
+                                quantity: true,
+                                value: true,
+                                createdAt: true,
+                                updatedAt: true,
+                                product: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        price: true,
+                                        createdAt: true,
+                                        updatedAt: true,
+                                        inventoryId: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
             },
         });
 
