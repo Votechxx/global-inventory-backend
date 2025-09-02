@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+    ForbiddenException,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/common/modules/prisma/prisma.service';
 import {
     CreateExpenseDto,
@@ -26,17 +30,15 @@ export class ExpenseService {
     ) {
         const currentUser = await this.userRepo.getUserById(userId);
         if (!currentUser) throw new NotFoundException('User not found');
-        if (currentUser.inventoryId !== userCreateExpenseDto.inventoryId)
-            throw new ForbiddenException(
-                'You are not allowed to create expense for this inventory',
-            );
+
         const inventory = await this.prismaService.inventory.findUnique({
-            where: { id: userCreateExpenseDto.inventoryId },
+            where: { id: currentUser.inventoryId },
         });
         if (!inventory) throw new NotFoundException('Inventory not found');
         const createExpenseDto: CreateExpenseDto = {
             ...userCreateExpenseDto,
             userId,
+            inventoryId: inventory.id,
         };
         const expense = await this.expenseRepo.createExpense(createExpenseDto);
         return expense;
