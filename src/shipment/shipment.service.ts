@@ -437,6 +437,7 @@ export class ShipmentService {
                     clarkInstallmentExpenses: body.clarkInstallmentExpenses,
                     otherExpenses: body.otherExpenses,
                     shipmentCardExpenses: body.shipmentCardExpenses,
+                    carCount: body.carCount,
                 });
             },
         );

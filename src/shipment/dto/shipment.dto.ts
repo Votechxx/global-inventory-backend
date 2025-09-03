@@ -150,6 +150,15 @@ export class ShipmentResponseDto {
 
     @ApiProperty({
         description:
+            'Number of cars involved in the shipment, this will affect the inventory balance',
+    })
+    @IsNotEmpty()
+    @IsInt()
+    @Type(() => Number)
+    carCount: number | null;
+
+    @ApiProperty({
+        description:
             'Other expenses related to the shipment, this will affect the inventory balance',
     })
     @IsNotEmpty()
@@ -194,6 +203,7 @@ export class SubmitShipmentForReview extends PickType(ShipmentResponseDto, [
     'clarkInstallmentExpenses',
     'shipmentCardExpenses',
     'otherExpenses',
+    'carCount',
 ] as const) {
     @ApiProperty({
         description: 'List of shipment products',

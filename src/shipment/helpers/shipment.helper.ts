@@ -19,6 +19,7 @@ export class ShipmentHelper {
             clarkInstallmentExpenses: shipment.clarkInstallmentExpenses,
             shipmentCardExpenses: shipment.shipmentCardExpenses,
             otherExpenses: shipment.otherExpenses,
+            carCount: shipment.carCount,
             shipmentProducts: shipmentProducts.map((p) => ({
                 productUnitId: p.productUnitId,
                 quantity: p.quantity,

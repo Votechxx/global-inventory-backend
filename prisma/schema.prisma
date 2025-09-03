@@ -123,6 +123,8 @@ model Shipment {
   clarkInstallmentExpenses Float?
   otherExpenses            Float?
 
+  carCount      Int?   // عدد العربيات
+
   shipmentExpenses ShipmentExpense[]
   shipmentProducts ShipmentProduct[]
 }
