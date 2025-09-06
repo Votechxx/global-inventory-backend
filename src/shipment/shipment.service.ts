@@ -338,6 +338,7 @@ export class ShipmentService {
                     shipmentExpenses: true,
                     shipmentProducts: true,
                 },
+                orderBy: { createdAt: 'desc' },
             }),
             this.prismaService.shipment.count(),
         ]);

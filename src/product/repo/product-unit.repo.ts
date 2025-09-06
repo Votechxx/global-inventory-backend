@@ -58,4 +58,27 @@ export class ProductUnitRepo {
             },
         });
     }
+
+    async getProductUnitsByInventoryId(inventoryId: number) {
+        return this.prismaService.productUnit.findMany({
+            where: {
+                product: {
+                    inventoryId,
+                },
+            },
+            select: {
+                id: true,
+                value: true,
+                quantity: true,
+                product: {
+                    select: {
+                        id: true,
+                        name: true,
+                        inventoryId: true,
+                        price: true,
+                    },
+                },
+            },
+        });
+    }
 }

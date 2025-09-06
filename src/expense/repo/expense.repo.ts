@@ -27,8 +27,11 @@ export class ExpenseRepo {
         return expense;
     }
 
-    async createExpense(data: CreateExpenseDto) {
-        return this.prismaService.expense.create({ data });
+    async createExpense(
+        data: CreateExpenseDto,
+        prisma: Prisma.TransactionClient = this.prismaService,
+    ) {
+        return prisma.expense.create({ data });
     }
 
     async updateExpense(id: number, data: UpdateExpenseDto) {
@@ -71,6 +74,30 @@ export class ExpenseRepo {
                 tag: true,
                 inventory: { select: { id: true, name: true } },
             },
+        });
+    }
+
+    async getAllNewExpensesForInventory(inventoryId: number) {
+        return this.prismaService.expense.findMany({
+            where: { reportId: null, inventoryId },
+            select: {
+                id: true,
+                name: true,
+                amount: true,
+                description: true,
+                tag: true,
+            },
+        });
+    }
+
+    async markExpensesToReport(
+        expenseIds: number[],
+        reportId: number,
+        prisma: Prisma.TransactionClient = this.prismaService,
+    ) {
+        return prisma.expense.updateMany({
+            where: { id: { in: expenseIds } },
+            data: { reportId },
         });
     }
 }

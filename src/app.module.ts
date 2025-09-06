@@ -14,6 +14,7 @@ import { ProductModule } from './product/product.module';
 import { ProductController } from './product/product.controller';
 import { ExpenseModule } from './expense/expense.module';
 import { ShipmentModule } from './shipment/shipment.module';
+import { ReportModule } from './report/report.module';
 
 @Module({
     imports: [
@@ -33,6 +34,7 @@ import { ShipmentModule } from './shipment/shipment.module';
         ProductModule,
         ExpenseModule,
         ShipmentModule,
+        ReportModule,
     ],
     controllers: [ProductController],
     providers: [UserRepo],

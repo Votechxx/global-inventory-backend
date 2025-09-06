@@ -44,6 +44,7 @@ model User {
   Shipment              Shipment[]
   inventory             Inventory?             @relation(fields: [inventoryId], references: [id])
   ProfileImage          File?                  @relation(fields: [profileImageId], references: [id])
+  Report                Report[]
 }
 
 model Product {
@@ -69,6 +70,7 @@ model ProductUnit {
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   ShipmentProduct ShipmentProduct[]
+  ReportProduct   ReportProduct[]
 }
 
 model Inventory {
@@ -87,6 +89,7 @@ model Inventory {
   Product        Product[]
   Shipment       Shipment[]
   workers        User[]
+  Report         Report[]
 }
 
 model Expense {
@@ -102,6 +105,11 @@ model Expense {
   updatedAt   DateTime   @updatedAt
   inventory   Inventory  @relation(fields: [inventoryId], references: [id])
   user        User       @relation(fields: [userId], references: [id])
+
+  applied Boolean @default(false)
+
+  reportId Int?
+  report   Report? @relation(fields: [reportId], references: [id], onDelete: SetNull)
 }
 
 model Shipment {
@@ -123,7 +131,7 @@ model Shipment {
   clarkInstallmentExpenses Float?
   otherExpenses            Float?
 
-  carCount      Int?   // عدد العربيات
+  carCount Int? // عدد العربيات
 
   shipmentExpenses ShipmentExpense[]
   shipmentProducts ShipmentProduct[]
@@ -176,7 +184,59 @@ model File {
 
   isUsed Boolean @default(false)
 
-  User User? @relation
+  User   User?    @relation
+  Report Report[]
+}
+
+model Report {
+  id   Int    @id @default(autoincrement())
+  uuid String @unique @default(uuid())
+
+  inventoryId Int
+  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  title String?
+
+  expectedSelledMoneyAmount Float
+  totalExpensesMoneyAmount  Float
+  netMoneyAmount            Float
+  currentMoneyAmount        Float
+  realNetMoneyAmount        Float
+  brokenMoneyAmount         Float
+  brokenRate                Float
+
+  depositMoneyAmount Float?
+  depositImageId     Int?
+  depositImage       File?  @relation(fields: [depositImageId], references: [id], onDelete: SetNull)
+
+  status ReportStatusEnum @default(PENDING)
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  ReportProduct ReportProduct[]
+  Expense       Expense[]
+}
+
+model ReportProduct {
+  id            Int @id @default(autoincrement())
+  reportId      Int
+  productUnitId Int
+
+  quantity        Int // العدد بالقطع ex: 200 pieces   (pallets * piecesPerPallet) ex: 1.5 pallets * 144 pieces per pallet = 216 pieces
+  piecesPerPallet Int // كام قطعه في البالتة   The quantity per pallet (e.g., pieces per pallet) ex: 144 pieces per pallet
+  pallets         Float // عدد البالتات (quantity / piecesPerPallet) ex: 1.5 pallets
+
+  unitPrice  Float // سعر الوحدة
+  totalPrice Float // السعر الإجمالي (pallets * unitPrice)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Report      Report      @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  ProductUnit ProductUnit @relation(fields: [productUnitId], references: [id], onDelete: Cascade)
 }
 
 enum ExpenseTag {
@@ -215,10 +275,12 @@ enum UserCreationMethodEnum {
   MANUAL
 }
 
-enum StatusDailyReportEnum {
+enum ReportStatusEnum {
   PENDING
-  APPROVED
-  REJECTED
+  PENDING_REVIEW
+  PENDING_DEPOSIT
+  PENDING_DEPOSIT_REVIEW
+  ACCEPTED
 }
 
 enum StatusShipmentEnum {

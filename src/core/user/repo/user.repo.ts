@@ -31,6 +31,21 @@ export class UserRepo {
         return user;
     }
 
+    async getUserByIdWithInventory(
+        id: number,
+        prisma: PrismaService = this.prismaService,
+    ) {
+        const user = await prisma.user.findUnique({
+            where: {
+                id,
+            },
+            include: {
+                inventory: true,
+            },
+        });
+        return user;
+    }
+
     async getUserByUsername(
         username: string,
         prisma: PrismaService = this.prismaService,

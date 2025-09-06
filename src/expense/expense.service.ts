@@ -7,17 +7,17 @@ import {
     UserCreateExpenseDto,
 } from './dto/expense.dto';
 import { ExpenseRepo } from './repo/expense.repo';
-import { ExpenseHelper } from './helpers/expense.helper';
 import { RoleEnum, User } from '@prisma/client';
 import { UserRepo } from 'src/core/user/repo/user.repo';
+import { ReportRepo } from 'src/report/repo/report.repo';
 
 @Injectable()
 export class ExpenseService {
     constructor(
         private prismaService: PrismaService,
         private readonly expenseRepo: ExpenseRepo,
-        private readonly expenseHelper: ExpenseHelper,
         private readonly userRepo: UserRepo,
+        private readonly reportRepo: ReportRepo,
     ) {}
 
     async createExpense(
@@ -31,13 +31,30 @@ export class ExpenseService {
             where: { id: currentUser.inventoryId },
         });
         if (!inventory) throw new NotFoundException('Inventory not found');
+
+        const activeReport = await this.reportRepo.getActiveReportByInventoryId(
+            inventory.id,
+        );
+
         const createExpenseDto: CreateExpenseDto = {
             ...userCreateExpenseDto,
             userId,
             inventoryId: inventory.id,
         };
-        const expense = await this.expenseRepo.createExpense(createExpenseDto);
-        return expense;
+
+        return this.prismaService.$transaction(async (prisma) => {
+            const expense = await this.expenseRepo.createExpense(
+                createExpenseDto,
+                prisma,
+            );
+            if (activeReport)
+                await this.expenseRepo.markExpensesToReport(
+                    [expense.id],
+                    activeReport.id,
+                    prisma,
+                );
+            return expense;
+        });
     }
 
     async getExpense(id: number) {

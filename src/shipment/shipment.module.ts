@@ -12,12 +12,14 @@ import { InventoryHelper } from 'src/inventory/helpers/inventory.helper';
 import { UserModule } from 'src/core/user/user.module';
 import { InventoryModule } from 'src/inventory/inventory.module';
 import { ProductModule } from 'src/product/product.module';
+import { ReportModule } from 'src/report/report.module';
 
 @Module({
     imports: [
         forwardRef(() => UserModule),
         forwardRef(() => InventoryModule),
         forwardRef(() => ProductModule),
+        forwardRef(() => ReportModule),
     ],
     providers: [
         ShipmentService,
