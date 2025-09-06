@@ -48,6 +48,7 @@ export class ExpenseService {
                 prisma,
             );
             if (activeReport)
+                // TODO update the report calculations
                 await this.expenseRepo.markExpensesToReport(
                     [expense.id],
                     activeReport.id,
