@@ -47,13 +47,37 @@ export class ExpenseService {
                 createExpenseDto,
                 prisma,
             );
-            if (activeReport)
-                // TODO update the report calculations
+            if (activeReport) {
+                const expectedSelledMoneyAmount =
+                    activeReport.expectedSelledMoneyAmount;
+                const totalExpensesMoneyAmount =
+                    activeReport.totalExpensesMoneyAmount + expense.amount;
+                const netMoneyAmount =
+                    expectedSelledMoneyAmount - totalExpensesMoneyAmount;
+                const realNetMoneyAmount =
+                    activeReport.currentMoneyAmount - inventory.currentBalance;
+                const brokenMoneyAmount = netMoneyAmount - realNetMoneyAmount;
+                const brokenRate =
+                    expectedSelledMoneyAmount === 0
+                        ? 0
+                        : (brokenMoneyAmount * 100) / expectedSelledMoneyAmount;
+                await this.reportRepo.updateReportById(
+                    activeReport.id,
+                    {
+                        totalExpensesMoneyAmount,
+                        netMoneyAmount,
+                        realNetMoneyAmount,
+                        brokenMoneyAmount,
+                        brokenRate,
+                    },
+                    prisma,
+                );
                 await this.expenseRepo.markExpensesToReport(
                     [expense.id],
                     activeReport.id,
                     prisma,
                 );
+            }
             return expense;
         });
     }
@@ -79,14 +103,16 @@ export class ExpenseService {
     async updateExpense(id: number, updateExpenseDto: UpdateExpenseDto) {
         const existingExpense = await this.expenseRepo.getExpenseById(id);
         if (!existingExpense) throw new NotFoundException('Expense not found');
-        // TODO when we add جرد then we should add validation here that we don't update the expense
+        if (existingExpense.applied)
+            throw new NotFoundException('Cannot update an applied expense');
         return this.expenseRepo.updateExpense(id, updateExpenseDto);
     }
 
     async deleteExpense(id: number) {
-        // TODO here also when we add جرد we should add validation that we don't delete the expense
         const existingExpense = await this.expenseRepo.getExpenseById(id);
         if (!existingExpense) throw new NotFoundException('Expense not found');
+        if (existingExpense.applied)
+            throw new NotFoundException('Cannot delete an applied expense');
         return this.expenseRepo.deleteExpense(id);
     }
 }

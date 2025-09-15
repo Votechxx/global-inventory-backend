@@ -15,4 +15,13 @@ export class ReportProductRepo {
             data: body,
         });
     }
+
+    async deleteReportProductsByReportId(
+        reportId: number,
+        prisma: Prisma.TransactionClient = this.prismaService,
+    ) {
+        return prisma.reportProduct.deleteMany({
+            where: { reportId },
+        });
+    }
 }

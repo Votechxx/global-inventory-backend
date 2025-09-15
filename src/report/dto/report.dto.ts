@@ -157,13 +157,13 @@ export class ReportDto {
         description: 'The status of the report',
         enum: ReportStatusEnum,
         required: false,
-        default: ReportStatusEnum.PENDING,
+        default: ReportStatusEnum.IN_REVIEW,
     })
     @IsNotEmpty()
     @IsOptional()
     @IsString()
     @IsEnum(ReportStatusEnum)
-    status?: ReportStatusEnum = ReportStatusEnum.PENDING;
+    status?: ReportStatusEnum = ReportStatusEnum.IN_REVIEW;
 
     createdAt: Date;
     updatedAt: Date;
@@ -190,6 +190,26 @@ export class UserCreateReportDto extends PickType(CreateReportDto, [
     @Type(() => UserAddReportProductDto)
     @ValidateNested({ each: true })
     products: UserAddReportProductDto[];
+}
+
+export class SubmitDepositDto {
+    @ApiProperty({
+        description: 'The money amount to be deposited to the inventory',
+        required: true,
+    })
+    @IsNotEmpty()
+    @Type(() => Number)
+    @IsNumber()
+    depositMoneyAmount: number;
+
+    @ApiProperty({
+        description: 'The image ID of the deposit slip',
+        required: true,
+    })
+    @IsNotEmpty()
+    @Type(() => Number)
+    @IsInt()
+    depositImageId: number;
 }
 
 export class ReportQueryDto extends PartialType(

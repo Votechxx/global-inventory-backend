@@ -21,6 +21,7 @@ export class ExpenseRepo {
                 description: true,
                 tag: true,
                 inventory: { select: { id: true, name: true } },
+                applied: true,
             },
         });
         if (!expense) throw new NotFoundException('Expense not found');
@@ -90,6 +91,26 @@ export class ExpenseRepo {
         });
     }
 
+    async getAllNewExpensesAndReportExpensesForInventory(
+        inventoryId: number,
+        reportId: number,
+    ) {
+        return this.prismaService.expense.findMany({
+            where: {
+                inventoryId,
+                OR: [{ reportId: null }, { reportId }],
+            },
+            select: {
+                id: true,
+                name: true,
+                amount: true,
+                description: true,
+                tag: true,
+                reportId: true,
+            },
+        });
+    }
+
     async markExpensesToReport(
         expenseIds: number[],
         reportId: number,
@@ -98,6 +119,16 @@ export class ExpenseRepo {
         return prisma.expense.updateMany({
             where: { id: { in: expenseIds } },
             data: { reportId },
+        });
+    }
+
+    async markExpensesAsAppliedForReport(
+        reportId: number,
+        prisma: Prisma.TransactionClient = this.prismaService,
+    ) {
+        return prisma.expense.updateMany({
+            where: { reportId },
+            data: { applied: true },
         });
     }
 }

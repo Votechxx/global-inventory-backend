@@ -212,7 +212,7 @@ model Report {
   depositImageId     Int?
   depositImage       File?  @relation(fields: [depositImageId], references: [id], onDelete: SetNull)
 
-  status ReportStatusEnum @default(PENDING)
+  status ReportStatusEnum @default(IN_REVIEW)
 
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
@@ -276,10 +276,10 @@ enum UserCreationMethodEnum {
 }
 
 enum ReportStatusEnum {
-  PENDING
-  PENDING_REVIEW
+  IN_REVIEW
+  REQUESTED_CHANGES
   PENDING_DEPOSIT
-  PENDING_DEPOSIT_REVIEW
+  IN_PENDING_DEPOSIT_REVIEW
   ACCEPTED
 }
 

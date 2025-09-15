@@ -16,10 +16,10 @@ export class ReportRepo {
                 inventoryId,
                 status: {
                     in: [
-                        ReportStatusEnum.PENDING,
-                        ReportStatusEnum.PENDING_REVIEW,
+                        ReportStatusEnum.IN_REVIEW,
                         ReportStatusEnum.PENDING_DEPOSIT,
-                        ReportStatusEnum.PENDING_DEPOSIT_REVIEW,
+                        ReportStatusEnum.REQUESTED_CHANGES,
+                        ReportStatusEnum.IN_PENDING_DEPOSIT_REVIEW,
                     ],
                 },
             },
@@ -102,6 +102,28 @@ export class ReportRepo {
                     },
                 },
             },
+        });
+    }
+
+    async updateReportStatus(
+        id: number,
+        status: ReportStatusEnum,
+        prisma: Prisma.TransactionClient = this.prismaService,
+    ) {
+        return prisma.report.update({
+            where: { id },
+            data: { status },
+        });
+    }
+
+    async updateReportById(
+        id: number,
+        data: Prisma.ReportUpdateInput,
+        prisma: Prisma.TransactionClient = this.prismaService,
+    ) {
+        return prisma.report.update({
+            where: { id },
+            data,
         });
     }
 }
