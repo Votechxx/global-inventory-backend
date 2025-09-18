@@ -208,6 +208,9 @@ model Report {
   brokenMoneyAmount         Float
   brokenRate                Float
 
+
+  reasonMessage String?
+
   depositMoneyAmount Float?
   depositImageId     Int?
   depositImage       File?  @relation(fields: [depositImageId], references: [id], onDelete: SetNull)

@@ -12,6 +12,7 @@ import {
 import { ReportService } from './report.service';
 import {
     ReportQueryDto,
+    RequestChangeDto,
     SubmitDepositDto,
     UserCreateReportDto,
 } from './dto/report.dto';
@@ -85,8 +86,8 @@ export class ReportController {
         summary: 'Request changes on a report (admin)',
         description: 'Request changes on a report',
     })
-    requestChanges(@Param('id') id: number) {
-        return this.reportService.requestChanges(+id);
+    requestChanges(@Param('id') id: number, @Body() body: RequestChangeDto) {
+        return this.reportService.requestChanges(+id, body);
     }
 
     @Patch(':id/accept-level-one')
@@ -125,8 +126,11 @@ export class ReportController {
         summary: 'Request changes at deposit stage (admin)',
         description: 'Request changes at deposit stage',
     })
-    requestChangesAtDeposit(@Param('id') id: number) {
-        return this.reportService.requestChangesAtDeposit(+id);
+    requestChangesAtDeposit(
+        @Param('id') id: number,
+        @Body() body: RequestChangeDto,
+    ) {
+        return this.reportService.requestChangesAtDeposit(+id, body);
     }
 
     @Patch(':id/final-acceptance')

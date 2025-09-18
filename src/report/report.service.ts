@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import {
     ReportQueryDto,
+    RequestChangeDto,
     SubmitDepositDto,
     UserCreateReportDto,
 } from './dto/report.dto';
@@ -185,17 +186,17 @@ export class ReportService {
         return report;
     }
 
-    async requestChanges(reportId: number) {
+    async requestChanges(reportId: number, body: RequestChangeDto) {
         const report = await this.reportRepo.getReportById(reportId);
         if (!report) throw new NotFoundException('Report not found');
         if (report.status !== ReportStatusEnum.IN_REVIEW)
             throw new BadRequestException(
                 'Only reports in review can be requested changes',
             );
-        return this.reportRepo.updateReportStatus(
-            reportId,
-            ReportStatusEnum.REQUESTED_CHANGES,
-        );
+        return this.reportRepo.updateReportById(reportId, {
+            status: ReportStatusEnum.REQUESTED_CHANGES,
+            reasonMessage: body.reasonMessage,
+        });
     }
 
     async updateReportAfterReview(
@@ -390,17 +391,17 @@ export class ReportService {
         });
     }
 
-    async requestChangesAtDeposit(reportId: number) {
+    async requestChangesAtDeposit(reportId: number, body: RequestChangeDto) {
         const report = await this.reportRepo.getReportById(reportId);
         if (!report) throw new NotFoundException('Report not found');
         if (report.status !== ReportStatusEnum.IN_PENDING_DEPOSIT_REVIEW)
             throw new BadRequestException(
                 'Only reports in pending deposit review can be requested changes',
             );
-        return this.reportRepo.updateReportStatus(
-            reportId,
-            ReportStatusEnum.PENDING_DEPOSIT,
-        );
+        return this.reportRepo.updateReportById(reportId, {
+            status: ReportStatusEnum.PENDING_DEPOSIT,
+            reasonMessage: body.reasonMessage,
+        });
     }
 
     async finalAccept(reportId: number) {

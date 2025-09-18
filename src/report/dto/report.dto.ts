@@ -165,6 +165,14 @@ export class ReportDto {
     @IsEnum(ReportStatusEnum)
     status?: ReportStatusEnum = ReportStatusEnum.IN_REVIEW;
 
+    @ApiProperty({
+        description: 'The reason message for requesting changes or rejection',
+        required: false,
+    })
+    @IsOptional()
+    @IsString()
+    reasonMessage?: string;
+
     createdAt: Date;
     updatedAt: Date;
 }
@@ -218,3 +226,13 @@ export class ReportQueryDto extends PartialType(
         PaginationDto,
     ),
 ) {}
+
+export class RequestChangeDto {
+    @ApiProperty({
+        description: 'The reason message for requesting changes or rejection',
+        required: true,
+    })
+    @IsNotEmpty()
+    @IsString()
+    reasonMessage: string;
+}
