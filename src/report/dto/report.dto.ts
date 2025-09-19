@@ -222,7 +222,7 @@ export class SubmitDepositDto {
 
 export class ReportQueryDto extends PartialType(
     IntersectionType(
-        PickType(ReportDto, ['id', 'uuid', 'userId'] as const),
+        PickType(ReportDto, ['id', 'uuid', 'userId', 'inventoryId'] as const),
         PaginationDto,
     ),
 ) {
