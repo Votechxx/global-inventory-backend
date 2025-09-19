@@ -53,6 +53,19 @@ export class ReportRepo {
                 skip,
                 take: limit,
                 orderBy: { createdAt: 'desc' },
+                include: {
+                    inventory: true,
+                    user: {
+                        select: {
+                            email: true,
+                            firstName: true,
+                            lastName: true,
+                            phoneNumber: true,
+                            id: true,
+                            ProfileImage: true,
+                        },
+                    },
+                },
             }),
         ]);
 
@@ -78,6 +91,7 @@ export class ReportRepo {
         return prisma.report.findUnique({
             where: { id },
             include: {
+                depositImage: true,
                 inventory: true,
                 ReportProduct: {
                     include: {
