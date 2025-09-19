@@ -222,10 +222,19 @@ export class SubmitDepositDto {
 
 export class ReportQueryDto extends PartialType(
     IntersectionType(
-        PickType(ReportDto, ['id', 'uuid', 'status', 'userId'] as const),
+        PickType(ReportDto, ['id', 'uuid', 'userId'] as const),
         PaginationDto,
     ),
-) {}
+) {
+    @ApiProperty({
+        description: 'Filter by report status',
+        required: false,
+        enum: ReportStatusEnum,
+    })
+    @IsOptional()
+    @IsEnum(ReportStatusEnum)
+    status?: ReportStatusEnum;
+}
 
 export class RequestChangeDto {
     @ApiProperty({

@@ -46,6 +46,8 @@ export class ReportRepo {
             ...filter,
         };
 
+        console.log(where);
+
         const [total, data] = await Promise.all([
             prisma.report.count({ where }),
             prisma.report.findMany({
