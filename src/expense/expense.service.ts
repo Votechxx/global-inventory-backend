@@ -7,7 +7,7 @@ import {
     UserCreateExpenseDto,
 } from './dto/expense.dto';
 import { ExpenseRepo } from './repo/expense.repo';
-import { RoleEnum, User } from '@prisma/client';
+import { ReportStatusEnum, RoleEnum, User } from '@prisma/client';
 import { UserRepo } from 'src/core/user/repo/user.repo';
 import { ReportRepo } from 'src/report/repo/report.repo';
 
@@ -35,6 +35,15 @@ export class ExpenseService {
         const activeReport = await this.reportRepo.getActiveReportByInventoryId(
             inventory.id,
         );
+
+        if (
+            activeReport &&
+            activeReport.status !== ReportStatusEnum.REQUESTED_CHANGES
+        ) {
+            throw new NotFoundException(
+                'Cannot create expense when there is an active report not in REQUESTED_CHANGES status',
+            );
+        }
 
         const createExpenseDto: CreateExpenseDto = {
             ...userCreateExpenseDto,
