@@ -16,18 +16,37 @@ import { GetUser } from '../core/auth/decorator/get-user.decorator';
 import { RoleEnum, User } from '@prisma/client';
 import { RolesGuard } from '../core/auth/guard/roles.guard';
 import { Roles } from '../core/auth/decorator/roles.decorator';
-import { CreateInventoryDto, UpdateInventoryDto, AddWorkerToInventoryDto, MoveWorkerDto, InventoryQueryDto } from './dto/inventory.dto';
+import {
+    CreateInventoryDto,
+    UpdateInventoryDto,
+    AddWorkerToInventoryDto,
+    MoveWorkerDto,
+    InventoryQueryDto,
+} from './dto/inventory.dto';
 
 @ApiTags('Inventory')
 @Controller('inventories')
 export class InventoryController {
     constructor(private readonly inventoryService: InventoryService) {}
 
+    @ApiBearerAuth('default')
+    @ApiOperation({
+        summary: 'Get inventory by ID',
+        description: 'Get inventory details by its ID',
+    })
+    @Get(':id')
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(RoleEnum.ADMIN)
+    async getInventoryById(@Param('id') id: number) {
+        return this.inventoryService.getInventoryById(+id);
+    }
+
     @UseGuards(AuthGuard('jwt'))
     @ApiBearerAuth('default')
     @ApiOperation({
         summary: 'Get my inventory data',
-        description: 'Get the inventory data for the authenticated user with worker count',
+        description:
+            'Get the inventory data for the authenticated user with worker count',
     })
     @Get('me')
     async getMyInventory(@GetUser() user: User) {
@@ -77,10 +96,14 @@ export class InventoryController {
     @ApiBearerAuth('default')
     @ApiOperation({
         summary: 'Get inventories list',
-        description: 'Get list of inventories with worker count and sorted workers by createdAt',
+        description:
+            'Get list of inventories with worker count and sorted workers by createdAt',
     })
     @Get()
-    async getInventories(@Query() inventoryQueryDto: InventoryQueryDto, @GetUser() user: User) {
+    async getInventories(
+        @Query() inventoryQueryDto: InventoryQueryDto,
+        @GetUser() user: User,
+    ) {
         return this.inventoryService.getInventories(inventoryQueryDto, user);
     }
 
@@ -96,7 +119,10 @@ export class InventoryController {
         @Param('id') id: number,
         @Body() addWorkerDto: AddWorkerToInventoryDto,
     ) {
-        return this.inventoryService.addWorkerToInventory(+id, addWorkerDto.workerId);
+        return this.inventoryService.addWorkerToInventory(
+            +id,
+            addWorkerDto.workerId,
+        );
     }
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -111,6 +137,10 @@ export class InventoryController {
         @Param('id') id: number,
         @Body() moveWorkerDto: MoveWorkerDto,
     ) {
-        return this.inventoryService.moveWorker(+id, moveWorkerDto.workerId, moveWorkerDto.targetInventoryId);
+        return this.inventoryService.moveWorker(
+            +id,
+            moveWorkerDto.workerId,
+            moveWorkerDto.targetInventoryId,
+        );
     }
 }

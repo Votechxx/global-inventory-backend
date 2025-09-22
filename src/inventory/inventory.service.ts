@@ -112,4 +112,11 @@ export class InventoryService {
             data: { inventoryId: targetInventoryId },
         });
     }
+
+
+    async getInventoryById(id: number): Promise<Inventory> {
+        const inventory = await this.inventoryRepo.getInventoryById(id);
+        if (!inventory) throw new NotFoundException('Inventory not found');
+        return inventory;
+    }
 }
