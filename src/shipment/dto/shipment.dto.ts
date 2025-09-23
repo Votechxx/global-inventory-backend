@@ -186,6 +186,14 @@ export class ShipmentResponseDto {
     @IsArray()
     shipmentProducts?: AddShipmentProductDto[];
 
+    @ApiProperty({
+        description: 'Reason message for status changes',
+        required: false,
+    })
+    @IsOptional()
+    @IsString()
+    reasonMessage?: string;
+
     @ApiProperty({ description: 'Creation date' })
     createdAt: Date;
 
