@@ -29,18 +29,6 @@ import {
 export class InventoryController {
     constructor(private readonly inventoryService: InventoryService) {}
 
-    @ApiBearerAuth('default')
-    @ApiOperation({
-        summary: 'Get inventory by ID',
-        description: 'Get inventory details by its ID',
-    })
-    @Get(':id')
-    @UseGuards(AuthGuard('jwt'), RolesGuard)
-    @Roles(RoleEnum.ADMIN)
-    async getInventoryById(@Param('id') id: number) {
-        return this.inventoryService.getInventoryById(+id);
-    }
-
     @UseGuards(AuthGuard('jwt'))
     @ApiBearerAuth('default')
     @ApiOperation({
@@ -51,6 +39,18 @@ export class InventoryController {
     @Get('me')
     async getMyInventory(@GetUser() user: User) {
         return this.inventoryService.getInventoryByUserId(user.id);
+    }
+
+    @ApiBearerAuth('default')
+    @ApiOperation({
+        summary: 'Get inventory by ID',
+        description: 'Get inventory details by its ID',
+    })
+    @Get(':id')
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(RoleEnum.ADMIN)
+    async getInventoryById(@Param('id') id: number) {
+        return this.inventoryService.getInventoryById(+id);
     }
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
