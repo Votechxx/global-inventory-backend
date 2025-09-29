@@ -21,6 +21,7 @@ import {
     ShipmentQueryDto,
     RequestShipmentUpdateDto,
     SubmitShipmentForReview,
+    ShipmentQueryChartDto,
 } from './dto/shipment.dto';
 
 @ApiTags('Shipment')
@@ -137,5 +138,19 @@ export class ShipmentController {
         @GetUser() user: User,
     ) {
         return this.shipmentService.submitShipmentForReview(id, body, user);
+    }
+
+    @Get('/chart/statistics')
+    @ApiBearerAuth('default')
+    @ApiOperation({
+        summary: 'Get shipments chart statistics',
+        description: 'Get shipments statistics for chart representation',
+    })
+    @UseGuards(AuthGuard('jwt'))
+    async getShipmentsChartStatistics(
+        @Query() query: ShipmentQueryChartDto,
+        @GetUser() user: User,
+    ) {
+        return this.shipmentService.chartStatistics(user, query);
     }
 }

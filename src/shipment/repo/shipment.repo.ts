@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/common/modules/prisma/prisma.service';
 import { Prisma, StatusShipmentEnum } from '@prisma/client';
+import { ShipmentQueryChartDto } from '../dto/shipment.dto';
 
 @Injectable()
 export class ShipmentRepo {
@@ -71,5 +72,68 @@ export class ShipmentRepo {
                 shipmentProducts: true,
             },
         });
+    }
+
+    async getShipmentsChartStatistics(query: ShipmentQueryChartDto) {
+        const { inventoryId, duration } = query;
+
+        let format: 'day' | 'week' | 'month' | 'year';
+        const startDate = new Date();
+        const endDate = new Date();
+
+        switch (duration) {
+            case 'DAILY':
+                startDate.setDate(startDate.getDate() - 7);
+                format = 'day';
+                break;
+            case 'WEEKLY':
+                startDate.setDate(startDate.getDate() - 30);
+                format = 'week';
+                break;
+            case 'MONTHLY':
+                startDate.setMonth(startDate.getMonth() - 12);
+                format = 'month';
+                break;
+            case 'YEARLY':
+                startDate.setFullYear(startDate.getFullYear() - 5);
+                format = 'year';
+                break;
+            default:
+                format = 'month';
+                startDate.setDate(startDate.getDate() - 7);
+        }
+
+        const inventoryFilter = inventoryId
+            ? Prisma.sql`AND s."inventoryId" = ${inventoryId}`
+            : Prisma.empty;
+
+        const shipments = await this.prismaService.$queryRaw<
+            { period: Date; count: number }[]
+        >(Prisma.sql`
+            WITH periods AS (
+            SELECT generate_series(
+                DATE_TRUNC(${format}::text, ${startDate}::timestamp),
+                DATE_TRUNC(${format}::text, ${endDate}::timestamp),
+                ('1 ' || ${format})::interval
+            ) AS period
+            )
+            SELECT p.period,
+                COALESCE(COUNT(s.id), 0)::int AS count
+            FROM periods p
+            LEFT JOIN "Shipment" s
+            ON DATE_TRUNC(${format}::text, s."createdAt") = p.period
+            AND s."createdAt" BETWEEN ${startDate} AND ${endDate}
+            ${inventoryFilter}
+            GROUP BY p.period
+            ORDER BY p.period ASC
+        `);
+
+        return {
+            shipments: shipments.map((s) => ({
+                period: s.period,
+                count: s.count,
+            })),
+            total: shipments.reduce((acc, curr) => acc + curr.count, 0),
+        };
     }
 }

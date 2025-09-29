@@ -173,6 +173,15 @@ export class UserQueryDto extends PaginationDto implements UserInterface {
     @IsString()
     @IsOptional()
     phoneNumber?: string;
+
+    @ApiProperty({
+        description: 'The ID of the inventory linked to the user',
+        required: false,
+    })
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    inventoryId?: number;
 }
 
 export class AdminCreateUserDto {

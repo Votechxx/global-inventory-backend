@@ -8,6 +8,7 @@ import { PrismaService } from 'src/common/modules/prisma/prisma.service';
 import {
     CreateShipmentDto,
     RequestShipmentUpdateDto,
+    ShipmentQueryChartDto,
     ShipmentQueryDto,
     ShipmentResponseDto,
     SubmitShipmentForReview,
@@ -456,5 +457,15 @@ export class ShipmentService {
             totalPrice,
             shipmentProducts,
         );
+    }
+
+    async chartStatistics(user: User, query: ShipmentQueryChartDto) {
+        const currentUser = await this.userRepo.getUserById(user.id);
+        const { ...filter } = query;
+
+        if (user.role === RoleEnum.USER)
+            query.inventoryId = currentUser.inventoryId;
+
+        return this.shipmentRepo.getShipmentsChartStatistics(query);
     }
 }

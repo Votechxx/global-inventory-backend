@@ -243,3 +243,23 @@ export class ShipmentQueryDto extends PartialType(
         PaginationDto,
     ),
 ) {}
+
+export enum ShipmentChartGroupByEnum {
+    DAILY = 'DAILY',
+    WEEKLY = 'WEEKLY',
+    MONTHLY = 'MONTHLY',
+    YEARLY = 'YEARLY',
+}
+
+export class ShipmentQueryChartDto extends PartialType(
+    PickType(ShipmentResponseDto, ['inventoryId'] as const),
+) {
+    @ApiProperty({
+        description: 'Group by duration',
+        required: true,
+        enum: ShipmentChartGroupByEnum,
+    })
+    @IsOptional()
+    @IsEnum(ShipmentChartGroupByEnum)
+    duration?: ShipmentChartGroupByEnum = ShipmentChartGroupByEnum.MONTHLY;
+}
