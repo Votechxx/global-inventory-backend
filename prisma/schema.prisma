@@ -232,6 +232,9 @@ model ReportProduct {
   piecesPerPallet Int // كام قطعه في البالتة   The quantity per pallet (e.g., pieces per pallet) ex: 144 pieces per pallet
   pallets         Float // عدد البالتات (quantity / piecesPerPallet) ex: 1.5 pallets
 
+  soldUnits  Int   @default(0) // عدد القطع المباعة
+  soldUnitsAmount Float @default(0) // المبلغ من بيع القطع المباعة (selledUnits * unitPrice)
+
   unitPrice  Float // سعر الوحدة
   totalPrice Float // السعر الإجمالي (pallets * unitPrice)
 

@@ -245,3 +245,30 @@ export class RequestChangeDto {
     @IsString()
     reasonMessage: string;
 }
+
+export enum ReportDurationEnum {
+    DAY = 'DAY',
+    WEEK = 'WEEK',
+    MONTH = 'MONTH',
+    YEAR = 'YEAR',
+}
+
+export class ReportStatisticsDto {
+    @ApiProperty({
+        description: 'The duration for the statistics (DAY, WEEK, MONTH, YEAR)',
+        required: true,
+        enum: ReportDurationEnum,
+    })
+    @IsNotEmpty()
+    @IsEnum(ReportDurationEnum)
+    duration: ReportDurationEnum = ReportDurationEnum.DAY;
+
+    @ApiProperty({
+        description: 'The inventory ID to filter the statistics',
+        required: false,
+    })
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    inventoryId?: number;
+}

@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import {
     ReportQueryDto,
+    ReportStatisticsDto,
     RequestChangeDto,
     SubmitDepositDto,
     UserCreateReportDto,
@@ -156,6 +157,10 @@ export class ReportService {
                         unitPrice: product.product.price,
                         totalPrice:
                             product.product.price * product.passedQuantity,
+                        soldUnits: product.value - product.passedQuantity,
+                        soldUnitsAmount:
+                            (product.value - product.passedQuantity) *
+                            product.product.price,
                     }));
                 await this.reportProductRepo.createReportProduct(
                     createProducts,
@@ -321,6 +326,10 @@ export class ReportService {
                         unitPrice: product.product.price,
                         totalPrice:
                             product.product.price * product.passedQuantity,
+                        soldUnits: product.value - product.passedQuantity,
+                        soldUnitsAmount:
+                            (product.value - product.passedQuantity) *
+                            product.product.price,
                     }));
                 await this.reportProductRepo.createReportProduct(
                     createProducts,
@@ -434,5 +443,9 @@ export class ReportService {
                 prisma,
             );
         });
+    }
+
+    async getStatistics(query: ReportStatisticsDto) {
+        return this.reportRepo.getReportStatistics(query);
     }
 }

@@ -12,6 +12,7 @@ import {
 import { ReportService } from './report.service';
 import {
     ReportQueryDto,
+    ReportStatisticsDto,
     RequestChangeDto,
     SubmitDepositDto,
     UserCreateReportDto,
@@ -143,5 +144,16 @@ export class ReportController {
     })
     finalAcceptance(@Param('id') id: number) {
         return this.reportService.finalAccept(+id);
+    }
+
+    @Get('all/statistics')
+    @ApiBearerAuth('default')
+    @UseGuards(AuthGuard('jwt'))
+    @ApiOperation({
+        summary: 'Get report statistics',
+        description: 'Get report statistics',
+    })
+    getStatistics(@Query() query: ReportStatisticsDto) {
+        return this.reportService.getStatistics(query);
     }
 }

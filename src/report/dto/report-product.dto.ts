@@ -75,6 +75,24 @@ export class ReportProductDto {
     @IsNumber()
     totalPrice: number; // السعر الإجمالي (pallets * unitPrice)
 
+    @ApiProperty({
+        description: 'The number of sold units for the product unit',
+        required: true,
+    })
+    @IsInt()
+    @Type(() => Number)
+    @IsNotEmpty()
+    soldUnits: number; // عدد القطع المباعة
+
+    @ApiProperty({
+        description: 'The amount from selling the sold units',
+        required: true,
+    })
+    @IsNotEmpty()
+    @Type(() => Number)
+    @IsNumber()
+    soldUnitsAmount: number; // المبلغ من بيع القطع المباعة (soldUnits * unitPrice)
+
     createdAt: Date;
     updatedAt: Date;
 }
