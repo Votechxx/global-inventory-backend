@@ -188,6 +188,9 @@ export class ReportRepo {
                 );
         }
 
+        console.log('From Date:', fromDate);
+        console.log('Inventory ID:', inventoryId);
+
         // جلب المنتجات المباعة من التقارير
         const reportProducts = await prisma.reportProduct.findMany({
             where: {
@@ -210,6 +213,8 @@ export class ReportRepo {
                 },
             },
         });
+
+        console.log('Report Products:', reportProducts);
 
         // تجميع الكميات حسب المنتج
         const productSalesMap: Record<
@@ -239,6 +244,8 @@ export class ReportRepo {
                 rp.Report.brokenMoneyAmount;
         }
 
+        console.log('Product Sales Map:', productSalesMap);
+
         // تحويلها لنتيجة مع المجموع
         const statistics = Object.entries(productSalesMap).map(
             ([name, data]) => ({
@@ -250,11 +257,16 @@ export class ReportRepo {
             }),
         );
 
+        console.log('Statistics:', statistics);
+
         const total = statistics.reduce((acc, cur) => acc + cur.count, 0);
         const totalAmount = statistics.reduce(
             (acc, cur) => acc + cur.amount,
             0,
         );
+
+        console.log('Total Products:', total);
+        console.log('Total Amount:', totalAmount);
 
         return {
             totalProducts: total,
