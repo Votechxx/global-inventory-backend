@@ -52,6 +52,7 @@ export class UserService {
                     address: userData.address,
                     firstName: userData.firstName,
                     lastName: userData.lastName,
+                    profileImageId: userData.profileImageId,
                 },
                 select: userPublicFields,
             });

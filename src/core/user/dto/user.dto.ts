@@ -407,6 +407,17 @@ export class UpdateUserDto extends PartialType(
     @IsBoolean()
     @Transform(({ value }) => value === 'true' || value === true)
     verified?: boolean;
+
+
+    @ApiProperty({
+        description: 'The ID of the user profile picture',
+        type: Number,
+        required: false,
+    })
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    profileImageId: number;
 }
 
 export class UpdateUserDataDto extends PartialType(
