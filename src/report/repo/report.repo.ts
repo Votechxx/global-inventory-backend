@@ -197,6 +197,7 @@ export class ReportRepo {
                 Report: {
                     createdAt: { gte: fromDate },
                     ...(inventoryId ? { inventoryId } : {}),
+                    status: ReportStatusEnum.ACCEPTED,
                 },
             },
             include: {
