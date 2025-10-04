@@ -22,7 +22,7 @@ export class CreateProductUnitDto {
     })
     @IsNotEmpty()
     @IsInt()
-    @Min(1)
+    @Min(0)
     @Type(() => Number)
     value: number;
 

@@ -153,7 +153,7 @@ export class ReportController {
         summary: 'Get report statistics',
         description: 'Get report statistics',
     })
-    getStatistics(@Query() query: ReportStatisticsDto) {
-        return this.reportService.getStatistics(query);
+    getStatistics(@Query() query: ReportStatisticsDto, @GetUser() user: User) {
+        return this.reportService.getStatistics(query, user);
     }
 }

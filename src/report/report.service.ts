@@ -427,6 +427,7 @@ export class ReportService {
         // 1. update status of report
         // 2. update inventory balance
         // 3. mark all expenses applied
+        // 4. TODO change products quantities in inventory
         await this.prismaService.$transaction(async (prisma) => {
             await this.reportRepo.updateReportStatus(
                 reportId,
@@ -445,7 +446,12 @@ export class ReportService {
         });
     }
 
-    async getStatistics(query: ReportStatisticsDto) {
+    async getStatistics(query: ReportStatisticsDto, user: User) {
+        if (user.role === RoleEnum.USER) {
+            const currentUser = await this.userRepo.getUserById(user.id);
+            if (!currentUser) throw new NotFoundException('User not found');
+            query.inventoryId = currentUser.inventoryId;
+        }
         return this.reportRepo.getReportStatistics(query);
     }
 }

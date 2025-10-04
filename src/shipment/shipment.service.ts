@@ -461,8 +461,6 @@ export class ShipmentService {
 
     async chartStatistics(user: User, query: ShipmentQueryChartDto) {
         const currentUser = await this.userRepo.getUserById(user.id);
-        const { ...filter } = query;
-
         if (user.role === RoleEnum.USER)
             query.inventoryId = currentUser.inventoryId;
 
