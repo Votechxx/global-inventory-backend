@@ -6,10 +6,23 @@ import { PrismaService } from 'src/common/modules/prisma/prisma.service';
 export class ProductUnitRepo {
     constructor(private readonly prismaService: PrismaService) {}
 
+    async updateProductUnitValue(
+        productUnitId: number,
+        value: number,
+        prisma: Prisma.TransactionClient = this.prismaService,
+    ) {
+        return prisma.productUnit.update({
+            where: { id: productUnitId },
+            data: {
+                value,
+            },
+        });
+    }
+
     async addMoreUnits(
         value: number,
         productUnitId: number,
-        prisma?: Prisma.TransactionClient,
+        prisma: Prisma.TransactionClient = this.prismaService,
     ) {
         return prisma.productUnit.update({
             where: { id: productUnitId },
@@ -24,7 +37,7 @@ export class ProductUnitRepo {
     async reduceUnits(
         value: number,
         productUnitId: number,
-        prisma?: Prisma.TransactionClient,
+        prisma: Prisma.TransactionClient = this.prismaService,
     ) {
         return prisma.productUnit.update({
             where: { id: productUnitId },

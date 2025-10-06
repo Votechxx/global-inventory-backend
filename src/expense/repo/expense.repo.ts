@@ -11,6 +11,20 @@ import {
 export class ExpenseRepo {
     constructor(private readonly prismaService: PrismaService) {}
 
+    async getTotalAmountSinceLastReport(query: ExpenseQueryDto) {
+        const { inventoryId } = query;
+        const result = await this.prismaService.expense.aggregate({
+            _sum: {
+                amount: true,
+            },
+            where: {
+                inventoryId,
+                applied: false,
+            },
+        });
+        return result._sum.amount || 0;
+    }
+
     async getExpenseById(id: number) {
         const expense = await this.prismaService.expense.findUnique({
             where: { id },

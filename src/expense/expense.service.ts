@@ -106,7 +106,9 @@ export class ExpenseService {
             query.inventoryId = currentUser.inventoryId;
         }
         const expenses = await this.expenseRepo.getAllExpenses(query);
-        return expenses;
+        const totalAmountSinceLastReport =
+            await this.expenseRepo.getTotalAmountSinceLastReport(query);
+        return { data: expenses, totalAmountSinceLastReport };
     }
 
     async updateExpense(id: number, updateExpenseDto: UpdateExpenseDto) {

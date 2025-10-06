@@ -10,6 +10,16 @@ import { PrismaService } from 'src/common/modules/prisma/prisma.service';
 export class InventoryRepo {
     constructor(private readonly prismaService: PrismaService) {}
 
+    async getTotalCurrentBalance(inventoryId?: number) {
+        const result = await this.prismaService.inventory.aggregate({
+            _sum: {
+                currentBalance: true,
+            },
+            where: inventoryId ? { id: inventoryId } : {},
+        });
+        return result._sum.currentBalance || 0;
+    }
+
     async getInventoryById(id: number) {
         const inventory = await this.prismaService.inventory.findUnique({
             where: { id },

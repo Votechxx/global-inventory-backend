@@ -429,19 +429,36 @@ export class ReportService {
         // 3. mark all expenses applied
         // 4. TODO change products quantities in inventory
         await this.prismaService.$transaction(async (prisma) => {
+            // 1
             await this.reportRepo.updateReportStatus(
                 reportId,
                 ReportStatusEnum.ACCEPTED,
                 prisma,
             );
+            // 2
             await this.inventoryRepo.incrementInventoryBalance(
                 report.inventoryId,
                 additionalBalance,
                 prisma,
             );
+            // 3
             await this.expenseRepo.markExpensesAsAppliedForReport(
                 report.id,
                 prisma,
+            );
+            // 4
+            const reportProducts =
+                await this.reportProductRepo.getReportProductsByReportId(
+                    report.id,
+                );
+            await Promise.all(
+                reportProducts.map((rp) => {
+                    return this.productUnitRepo.updateProductUnitValue(
+                        rp.productUnitId,
+                        rp.quantity,
+                        prisma,
+                    );
+                }),
             );
         });
     }
@@ -452,6 +469,15 @@ export class ReportService {
             if (!currentUser) throw new NotFoundException('User not found');
             query.inventoryId = currentUser.inventoryId;
         }
-        return this.reportRepo.getReportStatistics(query);
+        const currentBalance = await this.inventoryRepo.getTotalCurrentBalance(
+            query.inventoryId,
+        );
+        const totalAmountSinceLastReport =
+            await this.expenseRepo.getTotalAmountSinceLastReport(query);
+        return {
+            data: await this.reportRepo.getReportStatistics(query),
+            currentBalance,
+            totalAmountSinceLastReport,
+        };
     }
 }

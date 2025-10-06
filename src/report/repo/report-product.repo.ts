@@ -24,4 +24,11 @@ export class ReportProductRepo {
             where: { reportId },
         });
     }
+
+    async getReportProductsByReportId(reportId: number) {
+        return this.prismaService.reportProduct.findMany({
+            where: { reportId },
+            include: { ProductUnit: true },
+        });
+    }
 }
